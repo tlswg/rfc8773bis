@@ -4,18 +4,19 @@
 
 Network Working Group                                         R. Housley
 Internet-Draft                                            Vigil Security
-Intended status: Standards Track                        29 December 2024
-Expires: 2 July 2025
+Intended status: Standards Track                        22 February 2025
+Expires: 26 August 2025
 
 
 TLS 1.3 Extension for Using Certificates with an External Pre-Shared Key
-                       draft-ietf-tls-8773bis-03
+                       draft-ietf-tls-8773bis-04
 
 Abstract
 
    This document specifies a TLS 1.3 extension that allows TLS clients
-   and servers to authenticate with a combination of a certificate and
-   an external pre-shared key (PSK).
+   and servers to authenticate with certificates and provide
+   confidentiality based on encryption with a symmetric key from the
+   usual key agreement algorithm and an external pre-shared key (PSK).
 
 Status of This Memo
 
@@ -32,11 +33,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 July 2025.
+   This Internet-Draft will expire on 26 August 2025.
 
 Copyright Notice
 
-   Copyright (c) 2024 IETF Trust and the persons identified as the
+   Copyright (c) 2025 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -85,8 +86,8 @@ Table of Contents
    authentication as described in Section 4.3.2 of [RFC8446].
 
    This document specifies a TLS 1.3 extension permitting certificate-
-   based authentication to be combined with an external PSK as an input
-   to the TLS 1.3 key schedule.
+   based authentication and providing an external PSK to be input to the
+   TLS 1.3 key schedule.
 
    Please see Appendix A for a list of changes since the publication of
    RFC 8773.
@@ -104,29 +105,32 @@ Table of Contents
    There are two motivations for using a certificate with an external
    PSK.
 
-   One motivation is protection against the future invention of a
-   Cryptographically Relevant Quantum Computer (CRQC) would pose a
-   serious challenge for the cryptographic algorithms that are widely
-   deployed today, including the digital signature algorithms that are
-   used to authenticate the server in the TLS 1.3 handshake protocol and
-   key agreement algorithm used to establish a pairwise shared secret
-   between the client and server.  It is an open question whether or not
-   it is feasible to build such a quantum computer, and if so, when that
-   might happen.  However, if such a quantum computer is invented, many
-   of the cryptographic algorithms and the security protocols that use
-   them would become vulnerable.  In particular, The TLS 1.3 handshake
-   protocol employs key agreement algorithms that could be broken by the
-   invention of a CRQC [I-D.hoffman-c2pq].
+   One motivation is confidentiality protection against the future
+   invention of a Cryptographically Relevant Quantum Computer (CRQC),
+   which would pose a serious challenge for the asymmetric cryptographic
+   algorithms that are widely deployed today, including the digital
+   signature algorithms that are used to authenticate the server in the
+   TLS 1.3 handshake protocol and key agreement algorithm used to
+   establish a pairwise shared secret between the client and server.  It
+   is an open question whether or not it is feasible to build such a
+   quantum computer, and if so, when that might happen.  However, if
+   such a quantum computer is invented, many of the cryptographic
+   algorithms and the security protocols that use them would become
+   vulnerable.  In particular, The TLS 1.3 handshake protocol employs
+   key agreement algorithms that could be broken by the invention of a
+   CRQC [I-D.hoffman-c2pq].  Including a strong external PSK in the TLS
+   1.3 key schedule offers confidentiality protection against the long-
+   term quantum computing threat; it requires the attacker to learn the
+   external PSK as well as the shared secret produced by the key
+   agreement algorithm to break confidentiality.
 
    When a certificate is used for authentication and a strong external
-   PSK is used in conjunction with a key agreement algorithm, today's
-   communications can be protected from the future invention of a CRQC.
-   The strong external PSK and the shared secret from the key agreement
-   algorithms are both provided as inputs to the TLS 1.3 key schedule,
-   which preserves the authentication provided by the existing
-   certificate and digital signature mechanisms, and requires the
-   attacker to learn the external PSK as well as the shared secret to
-   break confidentiality.
+   PSK is used in conjunction with a key agreement algorithm, which
+   maintains the authentication provided by the existing certificate and
+   digital signature mechanisms.  This authentication cannot be relied
+   upon if a CRQC is ever invented.  Including a strong external PSK in
+   the TLS 1.3 key schedule does not offer improved against the long-
+   term quantum computing threat regarding authentication.
 
    Likewise, a raw public key can be provided as described in [RFC7250].
 
@@ -174,10 +178,10 @@ Table of Contents
    negotiated, the TLS 1.3 key schedule processing includes both the
    selected external PSK and the (EC)DHE shared secret value.  (EC)DHE
    refers to Diffie-Hellman over either finite fields or elliptic
-   curves.  As a result, the Early Secret, Handshake Secret, and Master
-   Secret values all depend upon the value of the selected external PSK.
-   Of course, the Early Secret does not depend upon the (EC)DHE shared
-   secret.
+   curves.  As a result, the Early Secret, Handshake Secret, and Main
+   Secret (previously known as the Master Secret) values all depend upon
+   the value of the selected external PSK.  Of course, the Early Secret
+   does not depend upon the (EC)DHE shared secret.
 
    The authentication of the server and optional authentication of the
    client depend upon the ability to generate a signature that can be
@@ -215,7 +219,7 @@ Table of Contents
    in the ServerHello message.  Successful negotiation of the
    "pre_shared_key" extension enables certificate verification to take
    place in addition to the inclusion of the external PSK in the key
-   schedule.  The external PSK is identified bu the "key_share"
+   schedule.  The external PSK is identified by the "key_share"
    extension, and the inclusion of the external PSK in the key schedule
    affects the key used for encryption.  The "tls_cert_with_extern_psk"
    extension is only present in the ServerHello message if the server
@@ -262,9 +266,9 @@ Table of Contents
    not impacted in any way by this specification.  However, this section
    discusses the extensions that require additional consideration.
 
-   The "psk_key_exchange_modes" extension is defined in of Section 4.2.9
-   of [RFC8446].  The "psk_key_exchange_modes" extension restricts the
-   use of both the PSKs offered in this ClientHello and those that the
+   The "psk_key_exchange_modes" extension is defined in Section 4.2.9 of
+   [RFC8446].  The "psk_key_exchange_modes" extension restricts the use
+   of both the PSKs offered in this ClientHello and those that the
    server might supply via a subsequent NewSessionTicket.  As a result,
    when the "psk_key_exchange_modes" extension is included in the
    ClientHello message, clients MUST include psk_dhe_ke mode.  In
@@ -380,8 +384,7 @@ Table of Contents
    restriction is removed when the "tls_cert_with_extern_psk" extension
    is offered by the client and accepted by the server.  However, TLS
    1.3 does not permit an external PSK to be used in the same fashion as
-   a resumption PSK, and this extension does not alter those
-   restrictions.
+   a resumption PSK, and this extension preserves that restriction.
 
    Implementations must protect the external pre-shared key (PSK).
    Compromise of the external PSK will make the encrypted session
@@ -426,11 +429,14 @@ Table of Contents
    protection against the future invention of a CRQC, the external PSK
    needs to be at least 128 bits.
 
-   If the external PSK is known to any party other than the client and
-   the server, then the external PSK MUST NOT be the sole basis for
-   authentication.  The reasoning is explained in Section 4.2 of
-   [K2016].  When this extension is used, authentication is based on
-   certificates, not the external PSK.
+   Even when the external PSK is not known to any party other than the
+   client and the server, then the external PSK MUST NOT be the sole
+   basis for authentication.  The reasoning is explained in Section 4.2
+   of [K2016].  The authentication of the server and optional
+   authentication of the client depend upon the ability to generate a
+   signature that can be validated with the public key in their
+   certificates.  The authentication processing is not changed in any
+   way by the selected external PSK.
 
    In this extension, the external PSK preserves confidentiality if the
    (EC)DH key agreement is ever broken by cryptanalysis or the future
@@ -440,15 +446,16 @@ Table of Contents
    the (EC)DH shared secret.  Should the attacker be able compute the
    (EC)DH shared secret, the forward-secrecy advantages traditionally
    associated with ephemeral (EC)DH keys will no longer be relevant.
-   Although the ephemeral private keys used during a given TLS session
-   are destroyed at the end of a session, preventing the attacker from
-   later accessing them, these private keys would nevertheless be
-   recoverable due to the break in the algorithm.  However, a more
-   general notion of "secrecy after key material is destroyed" would
-   still be achievable using external PSKs, if they are managed in a way
-   that ensures their destruction when they are no longer needed, and
-   with the assumption that the algorithms that use the external PSKs
-   remain quantum-safe.
+   Although the ephemeral private keys used during a given TLS 1.3
+   session are destroyed at the end of a session, preventing the
+   attacker from later accessing them, these private keys would
+   nevertheless be recoverable due to the break in the (EC)DH algorithm.
+   However, a more general notion of "secrecy after key material is
+   destroyed" would still be achievable using external PSKs, if they are
+   managed in a way that ensures their destruction when they are no
+   longer needed, and with the assumption that the symmetric algorithms
+   that use the external PSKs remain safe against the invention of a
+   CRQC.
 
    TLS 1.3 key derivation makes use of the HMAC-based Key Derivation
    Function (HKDF) algorithm, which depends upon the HMAC [RFC2104]
@@ -495,9 +502,9 @@ Table of Contents
       Early Secret = HKDF-Extract(External PSK, 0)
 
    Any entropy contributed by the external PSK can only make the Early
-   Secret better; the External PSK cannot make it worse.  For these two
-   reasons, TLS 1.3 continues to meet its security goals when this
-   extension is used.
+   Secret better; the External PSK cannot make it worse.  Thus, TLS 1.3
+   continues to meet well-studied security goals when this extension is
+   used.
 
 8.  Privacy Considerations
 
@@ -527,9 +534,9 @@ Table of Contents
    [I-D.ietf-emu-bootstrapped-tls]
               Friel, O. and D. Harkins, "Bootstrapped TLS Authentication
               with Proof of Knowledge (TLS-POK)", Work in Progress,
-              Internet-Draft, draft-ietf-emu-bootstrapped-tls-07, 21
-              October 2024, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-emu-bootstrapped-tls-07>.
+              Internet-Draft, draft-ietf-emu-bootstrapped-tls-08, 6
+              February 2025, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-emu-bootstrapped-tls-08>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -571,23 +578,23 @@ Table of Contents
               Banerjee, A., Reddy.K, T., Schoinianakis, D., Hollebeek,
               T., and M. Ounsworth, "Post-Quantum Cryptography for
               Engineers", Work in Progress, Internet-Draft, draft-ietf-
-              pquip-pqc-engineers-06, 21 October 2024,
+              pquip-pqc-engineers-09, 13 February 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-pquip-
-              pqc-engineers-06>.
+              pqc-engineers-09>.
 
    [I-D.ietf-tls-esni]
               Rescorla, E., Oku, K., Sullivan, N., and C. A. Wood, "TLS
               Encrypted Client Hello", Work in Progress, Internet-Draft,
-              draft-ietf-tls-esni-22, 15 September 2024,
+              draft-ietf-tls-esni-23, 19 February 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-tls-
-              esni-22>.
+              esni-23>.
 
    [I-D.ietf-tls-rfc8446bis]
               Rescorla, E., "The Transport Layer Security (TLS) Protocol
               Version 1.3", Work in Progress, Internet-Draft, draft-
-              ietf-tls-rfc8446bis-11, 14 September 2024,
+              ietf-tls-rfc8446bis-12, 17 February 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-tls-
-              rfc8446bis-11>.
+              rfc8446bis-12>.
 
    [IANA]     IANA, "TLS ExtensionType Values",
               <https://www.iana.org/assignments/tls-extensiontype-
@@ -627,16 +634,21 @@ Appendix A.  Changes Since RFC 8773
    title, the following changes were made:
 
    *  Expand the motivation discussion to talk about protection against
-      the future development of a cryptographically-relevant quantum
-      computer and enrollment in enterprise networks.
+      the future development of a Cryptographically Relevant Quantum
+      Computer (CRQC) and enrollment in enterprise networks.
+
+   *  Separate the discussion of confidentiality and authentication.
+      The inclusion of the external PSK offers some confidentiality
+      protection against the future invention of a CRQC, but the
+      external PSK does not improve authentication.
 
    *  Correct RFC Errata 7598 [Err7598].
 
    *  Add a discussion of TLS Encrypted Client Hello to the Privacy
       Considerations.
 
-   *  Adopt terminology that has become widely accepted, such as
-      Cryptographically Relevant Quantum Computer (CRQC).
+   *  Adopt terminology that has become widely accepted, such as CRQC
+      and Main Secret (instead of Master Secret).
 
    *  Provide URLs for all references.
 
@@ -649,9 +661,9 @@ Acknowledgments
    became RFC 8773; their efforts have improved the document.
 
    Many thanks to Dan Harkins, Owen Friel, John Preuß Mattsson,
-   Christian Huitema, and Joe Salowey for their review and comments on
-   the updates to RFC 8773 that became this document; it is improved the
-   by their efforts.
+   Christian Huitema, Joe Salowey, and Britta Hale for their review and
+   comments on the updates to RFC 8773 that became this document; their
+   efforts have improved the document.
 
 Author's Address
 

@@ -9,16 +9,17 @@
 <meta content="
        
         This document specifies a TLS 1.3 extension that allows TLS clients
-        and servers to authenticate with a combination of a certificate and
-        an external pre-shared key (PSK).
+        and servers to authenticate with certificates and provide confidentiality
+        based on encryption with a symmetric key from the usual key
+        agreement algorithm and an external pre-shared key (PSK).
        
     " name="description">
-<meta content="xml2rfc 3.25.0" name="generator">
+<meta content="xml2rfc 3.27.0" name="generator">
 <meta content="cryptography" name="keyword">
-<meta content="draft-ietf-tls-8773bis-03" name="ietf.draft">
+<meta content="draft-ietf-tls-8773bis-04" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.25.0
-    Python 3.12.8
+  xml2rfc 3.27.0
+    Python 3.12.9
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
@@ -439,7 +440,7 @@ dl {
     margin-bottom: 0;
   }
 }
-dl > dt {
+dl:not(.dlNewline) > dt {
   float: left;
   margin-right: 2ch;
   min-width: 8ch;
@@ -1048,11 +1049,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Certificate with External PSK</td>
-<td class="right">December 2024</td>
+<td class="right">February 2025</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Housley</td>
-<td class="center">Expires 2 July 2025</td>
+<td class="center">Expires 26 August 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1062,15 +1063,15 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-ietf-tls-8773bis-03</dd>
+<dd class="internet-draft">draft-ietf-tls-8773bis-04</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-12-29" class="published">29 December 2024</time>
+<time datetime="2025-02-22" class="published">22 February 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-07-02">2 July 2025</time></dd>
+<dd class="expires"><time datetime="2025-08-26">26 August 2025</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1085,8 +1086,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">
         This document specifies a TLS 1.3 extension that allows TLS clients
-        and servers to authenticate with a combination of a certificate and
-        an external pre-shared key (PSK).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+        and servers to authenticate with certificates and provide confidentiality
+        based on encryption with a symmetric key from the usual key
+        agreement algorithm and an external pre-shared key (PSK).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1107,7 +1109,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 August 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1116,7 +1118,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
         </h2>
 <p id="section-boilerplate.2-1">
-            Copyright (c) 2024 IETF Trust and the persons identified as the
+            Copyright (c) 2025 IETF Trust and the persons identified as the
             document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.2-2">
             This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1219,8 +1221,8 @@ svg :is([fill="white"], [fill^="#fff"]) {
         <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">
         This document specifies a TLS 1.3 extension permitting
-        certificate-based authentication to be combined with
-        an external PSK as an input to the TLS 1.3 key schedule.<a href="#section-1-3" class="pilcrow">¶</a></p>
+        certificate-based authentication and providing an external PSK
+        to be input to the TLS 1.3 key schedule.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">
         Please see <a href="#changes" class="auto internal xref">Appendix A</a> for a list of changes since
         the publication of RFC 8773.<a href="#section-1-4" class="pilcrow">¶</a></p>
@@ -1247,27 +1249,30 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <p id="section-3-1">
         There are two motivations for using a certificate with an external PSK.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">
-        One motivation is protection against the future invention of a
-        Cryptographically Relevant Quantum Computer (CRQC) would pose a serious challenge
-        for the cryptographic algorithms that are widely deployed today, including
-        the digital signature algorithms that are used to authenticate the server in
-        the TLS 1.3 handshake protocol and key agreement algorithm used to establish
-        a pairwise shared secret between the client and server.  It is an open
-        question whether or not it is feasible to build such a quantum computer,
+        One motivation is confidentiality protection against the future invention of a
+        Cryptographically Relevant Quantum Computer (CRQC), which would pose a serious
+        challenge for the asymmetric cryptographic algorithms that are widely deployed
+        today, including the digital signature algorithms that are used to authenticate
+        the server in the TLS 1.3 handshake protocol and key agreement algorithm used
+        to establish a pairwise shared secret between the client and server.  It is an
+        open question whether or not it is feasible to build such a quantum computer,
         and if so, when that might happen.  However, if such a quantum computer is
         invented, many of the cryptographic algorithms and the security protocols
         that use them would become vulnerable.  In particular, The TLS 1.3 handshake
         protocol employs key agreement algorithms that could be broken by the
-        invention of a CRQC <span>[<a href="#I-D.hoffman-c2pq" class="cite xref">I-D.hoffman-c2pq</a>]</span>.<a href="#section-3-2" class="pilcrow">¶</a></p>
+        invention of a CRQC <span>[<a href="#I-D.hoffman-c2pq" class="cite xref">I-D.hoffman-c2pq</a>]</span>.  Including a strong
+        external PSK in the TLS 1.3 key schedule offers confidentiality protection
+        against the long-term quantum computing threat; it requires the attacker to
+        learn the external PSK as well as the shared secret produced by the key
+        agreement algorithm to break confidentiality.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <p id="section-3-3">
         When a certificate is used for authentication and a strong external PSK is
-        used in conjunction with a key agreement algorithm, today's communications
-        can be protected from the future invention of a CRQC.  The strong external
-        PSK and the shared secret from the key agreement algorithms are both provided
-        as inputs to the TLS 1.3 key schedule, which preserves the authentication
-        provided by the existing certificate and digital signature mechanisms, and
-        requires the attacker to learn the external PSK as well as the shared
-        secret to break confidentiality.<a href="#section-3-3" class="pilcrow">¶</a></p>
+        used in conjunction with a key agreement algorithm, which maintains the
+        authentication provided by the existing certificate and digital signature
+        mechanisms.  This authentication cannot be relied upon if a CRQC is ever
+        invented.  Including a strong external PSK in the TLS 1.3 key schedule does
+        not offer improved against the long-term quantum computing threat regarding
+        authentication.<a href="#section-3-3" class="pilcrow">¶</a></p>
 <p id="section-3-4">
         Likewise, a raw public key can be provided as described in
         <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>.<a href="#section-3-4" class="pilcrow">¶</a></p>
@@ -1322,9 +1327,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
         both the selected external PSK and the (EC)DHE shared secret
         value.  (EC)DHE refers to Diffie-Hellman over either finite fields
         or elliptic curves.  As a result, the Early Secret, Handshake
-        Secret, and Master Secret values all depend upon the value of the
-        selected external PSK.  Of course, the Early Secret does not
-        depend upon the (EC)DHE shared secret.<a href="#section-4-5" class="pilcrow">¶</a></p>
+        Secret, and Main Secret (previously known as the Master Secret) values
+        all depend upon the value of the selected external PSK.  Of course, the
+        Early Secret does not depend upon the (EC)DHE shared secret.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <p id="section-4-6">
         The authentication of the server and optional authentication of
         the client depend upon the ability to generate a signature that
@@ -1368,7 +1373,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         carried in the ServerHello message.  Successful negotiation of
         the "pre_shared_key" extension enables certificate verification
         to take place in addition to the inclusion of the external PSK in
-        the key schedule.  The external PSK is identified bu the
+        the key schedule.  The external PSK is identified by the
         "key_share" extension, and the inclusion of the external PSK in
         the key schedule affects the key used for encryption.  The
         "tls_cert_with_extern_psk" extension is only present in the
@@ -1421,13 +1426,13 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-companion-extensions" class="section-name selfRef">Companion Extensions</a>
         </h3>
 <p id="section-5.1-1">
-          <a href="#over" class="auto internal xref">Section 4</a> lists the extensions that are required to accompany the
-          "tls_cert_with_extern_psk" extension.  Most of those extensions 
+          <a href="#over" class="auto internal xref">Section 4</a> lists the extensions that are required to accompany
+          the "tls_cert_with_extern_psk" extension.  Most of those extensions 
           are not impacted in any way by this specification.  However, this
           section discusses the extensions that require additional consideration.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">
           The "psk_key_exchange_modes" extension is defined in
-          of <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.9" class="relref">Section 4.2.9</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
+          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.9" class="relref">Section 4.2.9</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
        "psk_key_exchange_modes" extension restricts the use of both the PSKs
        offered in this ClientHello and those that the server might supply via
        a subsequent NewSessionTicket.  As a result, when the "psk_key_exchange_modes"
@@ -1435,10 +1440,10 @@ svg :is([fill="white"], [fill^="#fff"]) {
           include psk_dhe_ke mode.  In addition, clients <span class="bcp14">MAY</span> also include
           psk_ke mode to support a subsequent NewSessionTicket.  When the
           "psk_key_exchange_modes" extension is included in the ClientHello
-          message, servers <span class="bcp14">MUST</span> select the psk_dhe_ke mode for the initial
-          handshake.  Servers <span class="bcp14">MUST</span> select a key exchange mode that is listed
-          by the client for subsequent handshakes that include the resumption
-          PSK from the initial handshake.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+          message, servers <span class="bcp14">MUST</span> select the psk_dhe_ke mode for the
+          initial handshake.  Servers <span class="bcp14">MUST</span> select a key exchange mode
+          that is listed by the client for subsequent handshakes that include the
+          resumption PSK from the initial handshake.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">
           The "pre_shared_key" extension is defined in
           <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
@@ -1491,19 +1496,17 @@ svg :is([fill="white"], [fill^="#fff"]) {
           which is derived from the external PSK, and a partial transcript of the
           current handshake.  Generation of the binder_key from the external PSK is
           described in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
-          partial transcript of the current handshake includes a partial
-          ClientHello up to and including the PreSharedKeyExtension.identities
-          field, as described in
-          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11.2" class="relref">Section 4.2.11.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+          partial transcript of the current handshake includes a partial ClientHello
+          up to and including the PreSharedKeyExtension.identities field, as described
+          in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11.2" class="relref">Section 4.2.11.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
 <p id="section-5.1-9">
-          The "selected_identity" contains the index of the external PSK
-          identity that the server selected from the list offered by the
-          client.  As described in
-          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, the
+          The "selected_identity" contains the index of the external PSK identity
+          that the server selected from the list offered by the client.  As described
+          in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, the
           server <span class="bcp14">MUST</span> validate the binder value that corresponds
           to the selected external PSK, and if the binder does not validate, the
-          server <span class="bcp14">MUST</span> abort the handshake with an
-          "illegal_parameter" alert.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+          server <span class="bcp14">MUST</span> abort the handshake with an "illegal_parameter"
+          alert.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authn">
@@ -1579,8 +1582,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         "tls_cert_with_extern_psk" extension is offered by the client
         and accepted by the server.  However, TLS 1.3 does not
         permit an external PSK to be used in the same fashion as a
-        resumption PSK, and this extension does not alter those
-        restrictions.<a href="#section-7-2" class="pilcrow">¶</a></p>
+        resumption PSK, and this extension preserves that restriction.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <p id="section-7-3">
         Implementations must protect the external pre-shared key (PSK).
         Compromise of the external PSK will make the encrypted session
@@ -1609,7 +1611,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         encryption algorithm with sufficiently large keys.  For protection against
         the future invention of a CRQC, the symmetric key needs to be at least 128
         bits.  While Grover’s algorithm (described in
-        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-06#section-7.1" class="relref">Section 7.1</a> of [<a href="#I-D.ietf-pquip-pqc-engineers" class="cite xref">I-D.ietf-pquip-pqc-engineers</a>]</span>)
+        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-09#section-7.1" class="relref">Section 7.1</a> of [<a href="#I-D.ietf-pquip-pqc-engineers" class="cite xref">I-D.ietf-pquip-pqc-engineers</a>]</span>)
         allows a quantum computer to perform a brute force key search using
         quadratically fewer steps than would be required with classical computers,
         there are a number of mitigating factors suggesting that Grover’s algorithm
@@ -1624,11 +1626,13 @@ svg :is([fill="white"], [fill^="#fff"]) {
         against the future invention of a CRQC, the external PSK needs to be at
         least 128 bits.<a href="#section-7-7" class="pilcrow">¶</a></p>
 <p id="section-7-8">
-        If the external PSK is known to any party other than the client and
-        the server, then the external PSK <span class="bcp14">MUST NOT</span> be the sole
+        Even when the external PSK is not known to any party other than the client
+        and the server, then the external PSK <span class="bcp14">MUST NOT</span> be the sole
         basis for authentication.  The reasoning is explained in Section 4.2 of
-        <span>[<a href="#K2016" class="cite xref">K2016</a>]</span>.  When this extension is used,
-        authentication is based on certificates, not the external PSK.<a href="#section-7-8" class="pilcrow">¶</a></p>
+        <span>[<a href="#K2016" class="cite xref">K2016</a>]</span>.  The authentication of the server
+        and optional authentication of the client depend upon the ability to generate
+        a signature that can be validated with the public key in their certificates.  The
+        authentication processing is not changed in any way by the selected external PSK.<a href="#section-7-8" class="pilcrow">¶</a></p>
 <p id="section-7-9">
         In this extension, the external PSK preserves confidentiality if the
         (EC)DH key agreement is ever broken by cryptanalysis or the future
@@ -1638,21 +1642,21 @@ svg :is([fill="white"], [fill^="#fff"]) {
         Should the attacker be able compute the (EC)DH shared secret, the
         forward-secrecy advantages traditionally associated with ephemeral (EC)DH keys
         will no longer be relevant.  Although the ephemeral private keys used during a
-        given TLS session are destroyed at the end of a session, preventing the attacker
-        from later accessing them, these private keys would nevertheless be
-        recoverable due to the break in the algorithm.  However, a more
+        given TLS 1.3 session are destroyed at the end of a session, preventing the
+        attacker from later accessing them, these private keys would nevertheless be
+        recoverable due to the break in the (EC)DH algorithm.  However, a more
         general notion of "secrecy after key material is destroyed" would still
         be achievable using external PSKs, if they are managed in a way that
         ensures their destruction when they are no longer needed, and with
-        the assumption that the algorithms that use the external PSKs remain
-        quantum-safe.<a href="#section-7-9" class="pilcrow">¶</a></p>
+        the assumption that the symmetric algorithms that use the external PSKs
+        remain safe against the invention of a CRQC.<a href="#section-7-9" class="pilcrow">¶</a></p>
 <p id="section-7-10">
         TLS 1.3 key derivation makes use of the HMAC-based Key Derivation
      Function (HKDF) algorithm, which depends upon the HMAC
      <span>[<a href="#RFC2104" class="cite xref">RFC2104</a>]</span> construction and a hash
         function.  This extension provides the desired protection for the
         session secrets, as long as HMAC with the selected hash function is
-         a pseudorandom function (PRF) <span>[<a href="#GGM1986" class="cite xref">GGM1986</a>]</span>.<a href="#section-7-10" class="pilcrow">¶</a></p>
+        a pseudorandom function (PRF) <span>[<a href="#GGM1986" class="cite xref">GGM1986</a>]</span>.<a href="#section-7-10" class="pilcrow">¶</a></p>
 <p id="section-7-11">
         This specification does not require that the external PSK is known only by
         the client and server.  The external PSK may be known to a group.  Since
@@ -1698,8 +1702,8 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </div>
 <p id="section-7-17">
         Any entropy contributed by the external PSK can only make the Early
-        Secret better; the External PSK cannot make it worse.  For these two
-        reasons, TLS 1.3 continues to meet its security goals when this extension
+        Secret better; the External PSK cannot make it worse.  Thus, TLS 1.3
+        continues to meet well-studied security goals when this extension
         is used.<a href="#section-7-17" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1711,7 +1715,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <p id="section-8-1">
         <span><a href="https://rfc-editor.org/rfc/rfc8446#appendix-E.6" class="relref">Appendix E.6</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> discusses
         identity-exposure attacks on PSKs.  Also,
-        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-11#appendix-C.4" class="relref">Appendix C.4</a> of [<a href="#I-D.ietf-tls-rfc8446bis" class="cite xref">I-D.ietf-tls-rfc8446bis</a>]</span>
+        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12#appendix-C.4" class="relref">Appendix C.4</a> of [<a href="#I-D.ietf-tls-rfc8446bis" class="cite xref">I-D.ietf-tls-rfc8446bis</a>]</span>
         discusses tracking prevention.  The guidance in these sections remain relevant.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">
         If an external PSK identity is used for multiple connections, then an
@@ -1740,7 +1744,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dl class="references">
 <dt id="I-D.ietf-emu-bootstrapped-tls">[I-D.ietf-emu-bootstrapped-tls]</dt>
         <dd>
-<span class="refAuthor">Friel, O.</span> and <span class="refAuthor">D. Harkins</span>, <span class="refTitle">"Bootstrapped TLS Authentication with Proof of Knowledge (TLS-POK)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-emu-bootstrapped-tls-07</span>, <time datetime="2024-10-21" class="refDate">21 October 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-07">https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-07</a>&gt;</span>. </dd>
+<span class="refAuthor">Friel, O.</span> and <span class="refAuthor">D. Harkins</span>, <span class="refTitle">"Bootstrapped TLS Authentication with Proof of Knowledge (TLS-POK)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-emu-bootstrapped-tls-08</span>, <time datetime="2025-02-06" class="refDate">6 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-08">https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
@@ -1779,15 +1783,15 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="break"></dd>
 <dt id="I-D.ietf-pquip-pqc-engineers">[I-D.ietf-pquip-pqc-engineers]</dt>
         <dd>
-<span class="refAuthor">Banerjee, A.</span>, <span class="refAuthor">Reddy.K, T.</span>, <span class="refAuthor">Schoinianakis, D.</span>, <span class="refAuthor">Hollebeek, T.</span>, and <span class="refAuthor">M. Ounsworth</span>, <span class="refTitle">"Post-Quantum Cryptography for Engineers"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-pquip-pqc-engineers-06</span>, <time datetime="2024-10-21" class="refDate">21 October 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-06">https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-06</a>&gt;</span>. </dd>
+<span class="refAuthor">Banerjee, A.</span>, <span class="refAuthor">Reddy.K, T.</span>, <span class="refAuthor">Schoinianakis, D.</span>, <span class="refAuthor">Hollebeek, T.</span>, and <span class="refAuthor">M. Ounsworth</span>, <span class="refTitle">"Post-Quantum Cryptography for Engineers"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-pquip-pqc-engineers-09</span>, <time datetime="2025-02-13" class="refDate">13 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-09">https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-09</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-tls-esni">[I-D.ietf-tls-esni]</dt>
         <dd>
-<span class="refAuthor">Rescorla, E.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Sullivan, N.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"TLS Encrypted Client Hello"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-esni-22</span>, <time datetime="2024-09-15" class="refDate">15 September 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-22">https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-22</a>&gt;</span>. </dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Sullivan, N.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"TLS Encrypted Client Hello"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-esni-23</span>, <time datetime="2025-02-19" class="refDate">19 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-23">https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-23</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-tls-rfc8446bis">[I-D.ietf-tls-rfc8446bis]</dt>
         <dd>
-<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-rfc8446bis-11</span>, <time datetime="2024-09-14" class="refDate">14 September 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-11">https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-11</a>&gt;</span>. </dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-rfc8446bis-12</span>, <time datetime="2025-02-17" class="refDate">17 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12">https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="IANA">[IANA]</dt>
         <dd>
@@ -1830,22 +1834,28 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <ul class="normal">
 <li class="normal" id="appendix-A-3.1">
             Expand the motivation discussion to talk about protection against the
-            future development of a cryptographically-relevant quantum computer
+            future development of a Cryptographically Relevant Quantum Computer (CRQC)
             and enrollment in enterprise networks.<a href="#appendix-A-3.1" class="pilcrow">¶</a>
 </li>
         <li class="normal" id="appendix-A-3.2">
-            Correct RFC Errata 7598 <span>[<a href="#Err7598" class="cite xref">Err7598</a>]</span>.<a href="#appendix-A-3.2" class="pilcrow">¶</a>
+            Separate the discussion of confidentiality and authentication.  The
+            inclusion of the external PSK offers some confidentiality protection
+            against the future invention of a CRQC, but the external PSK does not
+            improve authentication.<a href="#appendix-A-3.2" class="pilcrow">¶</a>
 </li>
         <li class="normal" id="appendix-A-3.3">
-            Add a discussion of TLS Encrypted Client Hello to the
-            Privacy Considerations.<a href="#appendix-A-3.3" class="pilcrow">¶</a>
+            Correct RFC Errata 7598 <span>[<a href="#Err7598" class="cite xref">Err7598</a>]</span>.<a href="#appendix-A-3.3" class="pilcrow">¶</a>
 </li>
         <li class="normal" id="appendix-A-3.4">
-            Adopt terminology that has become widely accepted, such as
-            Cryptographically Relevant Quantum Computer (CRQC).<a href="#appendix-A-3.4" class="pilcrow">¶</a>
+            Add a discussion of TLS Encrypted Client Hello to the
+            Privacy Considerations.<a href="#appendix-A-3.4" class="pilcrow">¶</a>
 </li>
         <li class="normal" id="appendix-A-3.5">
-            Provide URLs for all references.<a href="#appendix-A-3.5" class="pilcrow">¶</a>
+            Adopt terminology that has become widely accepted, such as CRQC and
+            Main Secret (instead of Master Secret).<a href="#appendix-A-3.5" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.6">
+            Provide URLs for all references.<a href="#appendix-A-3.6" class="pilcrow">¶</a>
 </li>
       </ul>
 </section>
@@ -1874,10 +1884,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
         <span class="contact-name">Dan Harkins</span>,
         <span class="contact-name">Owen Friel</span>,
         <span class="contact-name">John Preuß Mattsson</span>,
-        <span class="contact-name">Christian Huitema</span>, and
-        <span class="contact-name">Joe Salowey</span>
+        <span class="contact-name">Christian Huitema</span>,
+        <span class="contact-name">Joe Salowey</span>, and
+        <span class="contact-name">Britta Hale</span>
         for their review and comments on the updates to RFC 8773 that became
-        this document; it is improved the by their efforts.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+        this document; their efforts have improved the document.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 </section>
 <div id="authors-addresses">
 <section id="appendix-C">
