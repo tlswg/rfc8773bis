@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-22T00:58:17.143924+00:00",
+  "timestamp": "2025-05-25T01:03:33.610163+00:00",
   "repo": "tlswg/rfc8773bis",
   "labels": [
     {
@@ -78,6 +78,46 @@
       },
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDONnR_r86XgGsA",
+      "title": "change IKM and not salt input of HKDF-Extract",
+      "url": "https://github.com/tlswg/rfc8773bis/pull/2",
+      "state": "OPEN",
+      "author": "muhammad-usama-sardar",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-05-24T14:22:06Z",
+      "updatedAt": "2025-05-24T15:30:22Z",
+      "baseRepository": "tlswg/rfc8773bis",
+      "baseRefName": "main",
+      "baseRefOid": "692e006bce445a3a7c81299c2b0c4fc6fa59406b",
+      "headRepository": "muhammad-usama-sardar/rfc8773bis",
+      "headRefName": "patch-1",
+      "headRefOid": "d7d4735be75393bf7507a0bd12b32a14106aa5e4",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDONnR_r86q2UO3",
+          "commit": {
+            "abbreviatedOid": "d7d4735"
+          },
+          "author": "dconnolly",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "This is correct, RFC 5869's definition has the salt first, then the IKM:\n\n![Screenshot_20250524-112944.png](https://github.com/user-attachments/assets/5459a6ea-35c7-48e2-ad58-8427272daf99)\n\n",
+          "createdAt": "2025-05-24T15:30:22Z",
+          "updatedAt": "2025-05-24T15:30:22Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
