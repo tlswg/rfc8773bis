@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-25T01:03:33.610163+00:00",
+  "timestamp": "2025-05-27T00:57:26.919788+00:00",
   "repo": "tlswg/rfc8773bis",
   "labels": [
     {
@@ -91,7 +91,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2025-05-24T14:22:06Z",
-      "updatedAt": "2025-05-24T15:30:22Z",
+      "updatedAt": "2025-05-26T15:36:17Z",
       "baseRepository": "tlswg/rfc8773bis",
       "baseRefName": "main",
       "baseRefOid": "692e006bce445a3a7c81299c2b0c4fc6fa59406b",
@@ -102,7 +102,36 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "muhammad-usama-sardar",
+          "authorAssociation": "NONE",
+          "body": "> isn't this just literally the key schedule already in 8446\r\n\r\nIn my understanding, it is no different than 8446. It is just an _external PSK_ (in contrast to _resumption PSK_). ",
+          "createdAt": "2025-05-25T23:03:22Z",
+          "updatedAt": "2025-05-25T23:03:22Z"
+        },
+        {
+          "author": "ekr",
+          "authorAssociation": "NONE",
+          "body": "Well, you'll notice the diagram just says \"PSK\"",
+          "createdAt": "2025-05-25T23:16:22Z",
+          "updatedAt": "2025-05-25T23:16:22Z"
+        },
+        {
+          "author": "muhammad-usama-sardar",
+          "authorAssociation": "NONE",
+          "body": "Yes, but `PSK` in 8446 is meant to cover both cases of _external PSK_ as well as _resumption PSK_. Here, in 8773bis, it is specifically _only_ external PSK.",
+          "createdAt": "2025-05-26T12:19:17Z",
+          "updatedAt": "2025-05-26T12:19:17Z"
+        },
+        {
+          "author": "ekr",
+          "authorAssociation": "NONE",
+          "body": "I don't understand your point. What I'm saying is that this is just the normal TLS 1.3 key schedule and not a change to the key schedule. Therefore the text above:\r\n\r\n>        places an external PSK in the key schedule as part of the computation of the\r\n>        Early Secret.  In the initial handshake without this extension, the\r\n>        Early Secret is computed as:\r\n\r\nIs at best misleading.\r\n\r\n",
+          "createdAt": "2025-05-26T15:36:16Z",
+          "updatedAt": "2025-05-26T15:36:16Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDONnR_r86q2UO3",
@@ -115,6 +144,19 @@
           "body": "This is correct, RFC 5869's definition has the salt first, then the IKM:\n\n![Screenshot_20250524-112944.png](https://github.com/user-attachments/assets/5459a6ea-35c7-48e2-ad58-8427272daf99)\n\n",
           "createdAt": "2025-05-24T15:30:22Z",
           "updatedAt": "2025-05-24T15:30:22Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDONnR_r86q4WL9",
+          "commit": {
+            "abbreviatedOid": "d7d4735"
+          },
+          "author": "ekr",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "This is correct in terms of HKDF-Extract, but isn't this just literally the key schedule already in 8446:\r\n\r\n```\r\n\r\n             0\r\n             |\r\n             v\r\n   PSK ->  HKDF-Extract = Early Secret\r\n```",
+          "createdAt": "2025-05-25T16:57:17Z",
+          "updatedAt": "2025-05-25T16:57:17Z",
           "comments": []
         }
       ]
