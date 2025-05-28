@@ -566,7 +566,7 @@
       </t>
 
 <sourcecode>
-   Early Secret = HKDF-Extract(External PSK, 0)
+   Early Secret = HKDF-Extract(0, External PSK)
 </sourcecode>
 
       <t>
