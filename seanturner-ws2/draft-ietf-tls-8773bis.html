@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>TLS 1.3 Extension for Using Certificates with an External Pre-Shared Key</title>
+<meta content="Russ Housley" name="author">
+<meta content="
+       
+        This document specifies a TLS 1.3 extension that allows TLS clients
+        and servers to authenticate with certificates and provide confidentiality
+        based on encryption with a symmetric key from the usual key
+        agreement algorithm and an external pre-shared key (PSK).
+       
+    " name="description">
+<meta content="xml2rfc 3.28.1" name="generator">
+<meta content="cryptography" name="keyword">
+<meta content="draft-ietf-tls-8773bis-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.28.1
+    Python 3.12.10
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.6
+    lxml 5.3.0
+    platformdirs 4.3.8
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.3
+    setuptools 70.3.0
+    wcwidth 0.2.13
+-->
+<link href="draft-ietf-tls-8773bis.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Certificate with External PSK</td>
+<td class="right">February 2025</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Housley</td>
+<td class="center">Expires 26 August 2025</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ietf-tls-8773bis-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2025-02-22" class="published">22 February 2025</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2025-08-26">26 August 2025</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">R. Housley</div>
+<div class="org">Vigil Security</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">TLS 1.3 Extension for Using Certificates with an External Pre-Shared Key</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">
+        This document specifies a TLS 1.3 extension that allows TLS clients
+        and servers to authenticate with certificates and provide confidentiality
+        based on encryption with a symmetric key from the usual key
+        agreement algorithm and an external pre-shared key (PSK).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 26 August 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2025 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-motivation-and-design-ratio" class="internal xref">Motivation and Design Rationale</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-extension-overview" class="internal xref">Extension Overview</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-certificate-with-external-p" class="internal xref">Certificate with External PSK Extension</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-companion-extensions" class="internal xref">Companion Extensions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-authentication" class="internal xref">Authentication</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-keying-material" class="internal xref">Keying Material</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-changes-since-rfc-8773" class="internal xref">Changes Since RFC 8773</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="intro">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">
+        The TLS 1.3 <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> handshake
+        protocol provides two mutually exclusive forms of server
+        authentication.  First, the server can be authenticated by
+        providing a signature certificate and creating a valid digital
+        signature to demonstrate that it possesses the corresponding
+        private key.  Second, the server can be authenticated
+        by demonstrating that it possesses a pre-shared key (PSK) that
+        was established by a previous handshake.  A PSK that
+        is established in this fashion is called a resumption PSK.  A
+        PSK that is established by any other means is called an external
+        PSK.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">
+        A TLS 1.3 server that is authenticating with a certificate may
+        optionally request a certificate from the TLS 1.3 client for
+        authentication as described in
+        <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">
+        This document specifies a TLS 1.3 extension permitting
+        certificate-based authentication and providing an external PSK
+        to be input to the TLS 1.3 key schedule.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">
+        Please see <a href="#changes" class="auto internal xref">Appendix A</a> for a list of changes since
+        the publication of RFC 8773.<a href="#section-1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="term">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+        "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+        "OPTIONAL" in this document are to be interpreted as described in
+        BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and
+        only when, they appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="motive">
+<section id="section-3">
+      <h2 id="name-motivation-and-design-ratio">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-motivation-and-design-ratio" class="section-name selfRef">Motivation and Design Rationale</a>
+      </h2>
+<p id="section-3-1">
+        There are two motivations for using a certificate with an external PSK.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">
+        One motivation is confidentiality protection against the future invention of a
+        Cryptographically Relevant Quantum Computer (CRQC), which would pose a serious
+        challenge for the asymmetric cryptographic algorithms that are widely deployed
+        today, including the digital signature algorithms that are used to authenticate
+        the server in the TLS 1.3 handshake protocol and key agreement algorithm used
+        to establish a pairwise shared secret between the client and server.  It is an
+        open question whether or not it is feasible to build such a quantum computer,
+        and if so, when that might happen.  However, if such a quantum computer is
+        invented, many of the cryptographic algorithms and the security protocols
+        that use them would become vulnerable.  In particular, The TLS 1.3 handshake
+        protocol employs key agreement algorithms that could be broken by the
+        invention of a CRQC <span>[<a href="#I-D.hoffman-c2pq" class="cite xref">I-D.hoffman-c2pq</a>]</span>.  Including a strong
+        external PSK in the TLS 1.3 key schedule offers confidentiality protection
+        against the long-term quantum computing threat; it requires the attacker to
+        learn the external PSK as well as the shared secret produced by the key
+        agreement algorithm to break confidentiality.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">
+        When a certificate is used for authentication and a strong external PSK is
+        used in conjunction with a key agreement algorithm, which maintains the
+        authentication provided by the existing certificate and digital signature
+        mechanisms.  This authentication cannot be relied upon if a CRQC is ever
+        invented.  Including a strong external PSK in the TLS 1.3 key schedule does
+        not offer improved against the long-term quantum computing threat regarding
+        authentication.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">
+        Likewise, a raw public key can be provided as described in
+        <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">
+        Quantum-resistant public-key cryptographic algorithms are becoming standards,
+        but it will take many years for TLS 1.3 ciphersuites that use these algorithms
+        to be developed and deployed.  In some environments, deployment of a strong
+        external PSK provides protection until these quantum-resistant algorithms
+        are deployed.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">
+        Another motivation is the use of a public key with a factory-provisioned
+        secret value for the initial enrollment of a device in an enterprise network
+        <span>[<a href="#I-D.ietf-emu-bootstrapped-tls" class="cite xref">I-D.ietf-emu-bootstrapped-tls</a>]</span>.<a href="#section-3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="over">
+<section id="section-4">
+      <h2 id="name-extension-overview">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-extension-overview" class="section-name selfRef">Extension Overview</a>
+      </h2>
+<p id="section-4-1">
+        This section provides a brief overview of the "tls_cert_with_extern_psk"
+        extension.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">
+        The client includes the "tls_cert_with_extern_psk" extension in the
+        ClientHello message.  The "tls_cert_with_extern_psk" extension <span class="bcp14">MUST</span>
+        be accompanied by the "key_share", "psk_key_exchange_modes", and
+        "pre_shared_key" extensions.  The client <span class="bcp14">MAY</span> also find it useful
+        to include the "supported_groups" extension.  Since the
+        "tls_cert_with_extern_psk" extension is intended to be used only
+        with initial handshakes, it <span class="bcp14">MUST NOT</span> be sent alongside the
+        "early_data" extension.  These extensions are all described in
+        <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, which also requires
+        the "pre_shared_key" extension to be the last extension in the
+        ClientHello message.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">
+        If the client includes both the "tls_cert_with_extern_psk" extension
+        and the "early_data" extension, then the server <span class="bcp14">MUST</span> terminate
+        the connection with an "illegal_parameter" alert.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">
+        If the server is willing to use one of the external PSKs listed in the
+        "pre_shared_key" extension and perform certificate-based authentication,
+        then the server includes the "tls_cert_with_extern_psk" extension in the
+        ServerHello message.  The "tls_cert_with_extern_psk" extension <span class="bcp14">MUST</span>
+        be accompanied by the "key_share" and "pre_shared_key" extensions.  If none
+        of the external PSKs in the list provided by the client is acceptable
+        to the server, then the "tls_cert_with_extern_psk" extension is omitted
+        from the ServerHello message.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">
+        When the "tls_cert_with_extern_psk" extension is successfully
+        negotiated, the TLS 1.3 key schedule processing includes
+        both the selected external PSK and the (EC)DHE shared secret
+        value.  (EC)DHE refers to Diffie-Hellman over either finite fields
+        or elliptic curves.  As a result, the Early Secret, Handshake
+        Secret, and Main Secret (previously known as the Master Secret) values
+        all depend upon the value of the selected external PSK.  Of course, the
+        Early Secret does not depend upon the (EC)DHE shared secret.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">
+        The authentication of the server and optional authentication of
+        the client depend upon the ability to generate a signature that
+        can be validated with the public key in their certificates.  The
+        authentication processing is not changed in any way by the
+        selected external PSK.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">
+        Each external PSK is associated with a single hash algorithm, which is
+        required by <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
+        hash algorithm <span class="bcp14">MUST</span> be set when the PSK is established, with a
+        default of SHA-256.<a href="#section-4-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="extn">
+<section id="section-5">
+      <h2 id="name-certificate-with-external-p">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-certificate-with-external-p" class="section-name selfRef">Certificate with External PSK Extension</a>
+      </h2>
+<p id="section-5-1">
+        This section specifies the "tls_cert_with_extern_psk" extension, which
+        <span class="bcp14">MAY</span> appear in the ClientHello message and ServerHello
+        message.  It <span class="bcp14">MUST NOT</span> appear in any other messages.  The
+        "tls_cert_with_extern_psk" extension <span class="bcp14">MUST NOT</span> appear in the
+        ServerHello message unless the "tls_cert_with_extern_psk" extension appeared
+        in the preceding ClientHello message.  If an implementation recognizes the
+        "tls_cert_with_extern_psk" extension and receives it in any other message,
+        then the implementation <span class="bcp14">MUST</span> abort the handshake with an
+        "illegal_parameter" alert.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">
+        The general extension mechanisms enable clients and servers to negotiate the
+        use of specific extensions.  Clients request extended functionality from
+        servers with the extensions field in the ClientHello message.  If the server
+        responds with a HelloRetryRequest message, then the client sends another
+        ClientHello message as described in
+        <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, including
+        the same "tls_cert_with_extern_psk" extension as the original
+        ClientHello message, or aborts the handshake.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">
+        Many server extensions are carried in the EncryptedExtensions
+        message; however, the "tls_cert_with_extern_psk" extension is
+        carried in the ServerHello message.  Successful negotiation of
+        the "pre_shared_key" extension enables certificate verification
+        to take place in addition to the inclusion of the external PSK in
+        the key schedule.  The external PSK is identified by the
+        "key_share" extension, and the inclusion of the external PSK in
+        the key schedule affects the key used for encryption.  The
+        "tls_cert_with_extern_psk" extension is only present in the
+        ServerHello message if the server recognizes the
+        "tls_cert_with_extern_psk" extension and the server possesses one
+        of the external PSKs offered by the client in the
+        "pre_shared_key" extension in the ClientHello message.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">
+        The Extension structure is defined in <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>;
+        it is repeated here for convenience.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5-5">
+<pre>  struct {
+      ExtensionType extension_type;
+      opaque extension_data&lt;0..2^16-1&gt;;
+  } Extension;
+</pre><a href="#section-5-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5-6">
+        The "extension_type" identifies the particular extension type,
+        and the "extension_data" contains information specific to the
+        particular extension type.<a href="#section-5-6" class="pilcrow">¶</a></p>
+<p id="section-5-7">
+        This document specifies the "tls_cert_with_extern_psk" extension,
+        adding one new type to ExtensionType:<a href="#section-5-7" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5-8">
+<pre>  enum {
+      tls_cert_with_extern_psk(33), (65535)
+  } ExtensionType;
+</pre><a href="#section-5-8" class="pilcrow">¶</a>
+</div>
+<p id="section-5-9">
+        The "tls_cert_with_extern_psk" extension is relevant when the
+        client and server possess an external PSK in common that can be
+        used as an input to the TLS 1.3 key schedule.  The
+        "tls_cert_with_extern_psk" extension is essentially a flag to
+        use the external PSK in the key schedule, and it has the
+        following syntax:<a href="#section-5-9" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5-10">
+<pre>  struct {
+      select (Handshake.msg_type) {
+          case client_hello: Empty;
+          case server_hello: Empty;
+      };
+  } CertWithExternPSK;
+</pre><a href="#section-5-10" class="pilcrow">¶</a>
+</div>
+<div id="other-extns">
+<section id="section-5.1">
+        <h3 id="name-companion-extensions">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-companion-extensions" class="section-name selfRef">Companion Extensions</a>
+        </h3>
+<p id="section-5.1-1">
+          <a href="#over" class="auto internal xref">Section 4</a> lists the extensions that are required to accompany
+          the "tls_cert_with_extern_psk" extension.  Most of those extensions
+          are not impacted in any way by this specification.  However, this
+          section discusses the extensions that require additional consideration.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">
+          The "psk_key_exchange_modes" extension is defined in
+          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.9" class="relref">Section 4.2.9</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
+       "psk_key_exchange_modes" extension restricts the use of both the PSKs
+       offered in this ClientHello and those that the server might supply via
+       a subsequent NewSessionTicket.  As a result, when the "psk_key_exchange_modes"
+          extension is included in the ClientHello message, clients <span class="bcp14">MUST</span>
+          include psk_dhe_ke mode.  In addition, clients <span class="bcp14">MAY</span> also include
+          psk_ke mode to support a subsequent NewSessionTicket.  When the
+          "psk_key_exchange_modes" extension is included in the ClientHello
+          message, servers <span class="bcp14">MUST</span> select the psk_dhe_ke mode for the
+          initial handshake.  Servers <span class="bcp14">MUST</span> select a key exchange mode
+          that is listed by the client for subsequent handshakes that include the
+          resumption PSK from the initial handshake.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">
+          The "pre_shared_key" extension is defined in
+          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
+       syntax is repeated below for convenience.  All of the listed PSKs
+       <span class="bcp14">MUST</span> be external PSKs.  If a resumption PSK is listed along
+       with the "tls_cert_with_extern_psk" extension, the server <span class="bcp14">MUST</span>
+       abort the handshake with an "illegal_parameter" alert.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.1-4">
+<pre>  struct {
+      opaque identity&lt;1..2^16-1&gt;;
+      uint32 obfuscated_ticket_age;
+  } PskIdentity;
+
+  opaque PskBinderEntry&lt;32..255&gt;;
+
+  struct {
+      PskIdentity identities&lt;7..2^16-1&gt;;
+      PskBinderEntry binders&lt;33..2^16-1&gt;;
+  } OfferedPsks;
+
+  struct {
+      select (Handshake.msg_type) {
+          case client_hello: OfferedPsks;
+          case server_hello: uint16 selected_identity;
+      };
+  } PreSharedKeyExtension;
+</pre><a href="#section-5.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-5">
+          "OfferedPsks" contains the list of PSK identities and
+          associated binders for the external PSKs that the client is
+          willing to use with the server.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">
+          The identities are a list of external PSK identities that the
+          client is willing to negotiate with the server.  Each external
+          PSK has an associated identity that is known to the client
+          and the server; the associated identities may be known to other
+          parties as well.  In addition, the binder validation (see below)
+          confirms that the client and server have the same key associated
+          with the identity.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">
+          The "obfuscated_ticket_age" is not used for external PSKs.  As
+          stated in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>,
+          clients <span class="bcp14">SHOULD</span> set this value to 0, and servers
+          <span class="bcp14">MUST</span> ignore the value.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">
+          The binders are a series of HMAC <span>[<a href="#RFC2104" class="cite xref">RFC2104</a>]</span>
+          values, one for each external PSK offered by the client, in the same order
+          as the identities list.  The HMAC value is computed using the binder_key,
+          which is derived from the external PSK, and a partial transcript of the
+          current handshake.  Generation of the binder_key from the external PSK is
+          described in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  The
+          partial transcript of the current handshake includes a partial ClientHello
+          up to and including the PreSharedKeyExtension.identities field, as described
+          in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11.2" class="relref">Section 4.2.11.2</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">
+          The "selected_identity" contains the index of the external PSK identity
+          that the server selected from the list offered by the client.  As described
+          in <span><a href="https://rfc-editor.org/rfc/rfc8446#section-4.2.11" class="relref">Section 4.2.11</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, the
+          server <span class="bcp14">MUST</span> validate the binder value that corresponds
+          to the selected external PSK, and if the binder does not validate, the
+          server <span class="bcp14">MUST</span> abort the handshake with an "illegal_parameter"
+          alert.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authn">
+<section id="section-5.2">
+        <h3 id="name-authentication">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-authentication" class="section-name selfRef">Authentication</a>
+        </h3>
+<p id="section-5.2-1">
+          When the "tls_cert_with_extern_psk" extension is successfully
+          negotiated, authentication of the server depends upon the ability to
+          generate a signature that can be validated with the public key.  When
+          the server uses a certificate, this is accomplished by the server
+          sending the Certificate and CertificateVerify messages, as described
+          in Sections <a href="https://rfc-editor.org/rfc/rfc8446#section-4.4.2" class="relref">4.4.2</a>
+          and <a href="https://rfc-editor.org/rfc/rfc8446#section-4.4.3" class="relref">4.4.3</a> of
+          <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.  Alternatively, the server can use a raw public
+          key as described in <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">
+          TLS 1.3 does not permit the server to send a CertificateRequest message
+          when a PSK is being used.  This restriction is removed when the
+          "tls_cert_with_extern_psk" extension is negotiated, allowing
+          certificate-based authentication for both the client and the server.  If
+          certificate-based client authentication is desired, this is accomplished
+          by the client sending the Certificate and CertificateVerify messages as
+          described in Sections <a href="https://rfc-editor.org/rfc/rfc8446#section-4.4.2" class="relref">4.4.2</a>
+          and <a href="https://rfc-editor.org/rfc/rfc8446#section-4.4.3" class="relref">4.4.3</a> of
+          <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="keying">
+<section id="section-5.3">
+        <h3 id="name-keying-material">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-keying-material" class="section-name selfRef">Keying Material</a>
+        </h3>
+<p id="section-5.3-1">
+          <span><a href="https://rfc-editor.org/rfc/rfc8446#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> specifies the
+          TLS 1.3 key schedule.  The successful negotiation of the
+          "tls_cert_with_extern_psk" extension requires the key schedule
+          processing to include both the external PSK and the (EC)DHE
+       shared secret value.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">
+          If the client and the server have different values associated
+          with the selected external PSK identifier, then the client and
+          the server will compute different values for every entry in the
+          key schedule, which will lead to the client aborting the
+          handshake with a "decrypt_error" alert.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="IANA-con">
+<section id="section-6">
+      <h2 id="name-iana-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-6-1">
+        Once this document is approved, IANA is asked to update the
+        "TLS ExtensionType Values" registry <span>[<a href="#IANA" class="cite xref">IANA</a>]</span>
+        entry for the "tls_cert_with_extern_psk" extension to reference this document.<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security">
+<section id="section-7">
+      <h2 id="name-security-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-7-1">
+        The Security Considerations in <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> remain relevant.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">
+        TLS 1.3 <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> does not permit
+        the server to send a CertificateRequest message when a PSK
+        is being used.  This restriction is removed when the
+        "tls_cert_with_extern_psk" extension is offered by the client
+        and accepted by the server.  However, TLS 1.3 does not
+        permit an external PSK to be used in the same fashion as a
+        resumption PSK, and this extension preserves that restriction.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">
+        Implementations must protect the external pre-shared key (PSK).
+        Compromise of the external PSK will make the encrypted session
+        content vulnerable to the future development of a Cryptographically
+        Relevant Quantum Computer (CRQC).  However, the generation, distribution,
+        and management of the external PSKs is out of scope for this specification.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">
+        Implementers should not transmit the same content on a connection
+        that is protected with an external PSK and a connection that is
+        not.  Doing so may allow an eavesdropper to correlate the
+        connections, making the content vulnerable to the future
+        invention of a CRQC.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<p id="section-7-5">
+        Implementations must generate external PSKs with a secure key-management
+        technique, such as pseudorandom generation of the key or derivation of
+        the key from one or more other secure keys.  The use of inadequate
+        pseudorandom number generators (PRNGs) to generate external PSKs can
+        result in little or no security.  An attacker may find it much easier
+        to reproduce the PRNG environment that produced the external PSKs and
+        search the resulting small set of possibilities, rather than brute-force
+        searching the whole key space.  The generation of quality random
+        numbers is difficult.  <span>[<a href="#RFC4086" class="cite xref">RFC4086</a>]</span> offers
+        important guidance in this area.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<p id="section-7-6">
+        Implementations must use a ciphersuite that includes a symmetric
+        encryption algorithm with sufficiently large keys.  For protection against
+        the future invention of a CRQC, the symmetric key needs to be at least 128
+        bits.  While Grover’s algorithm (described in
+        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-12#section-7.1" class="relref">Section 7.1</a> of [<a href="#I-D.ietf-pquip-pqc-engineers" class="cite xref">I-D.ietf-pquip-pqc-engineers</a>]</span>)
+        allows a quantum computer to perform a brute force key search using
+        quadratically fewer steps than would be required with classical computers,
+        there are a number of mitigating factors suggesting that Grover’s algorithm
+        will not speed up brute force symmetric key search as dramatically as one
+        might suspect.  First, quantum computing hardware will likely be more
+        expensive to build and use than classical hardware.  Second, to obtain the
+        full quadratic speedup, all the steps of Grover’s algorithm must be performed
+        in series.  However, attacks on cryptography use massively parallel processing,
+        the advantage of Grover’s algorithm will be smaller.<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">
+        Implementations must use sufficiently large external PSKs.  For protection
+        against the future invention of a CRQC, the external PSK needs to be at
+        least 128 bits.<a href="#section-7-7" class="pilcrow">¶</a></p>
+<p id="section-7-8">
+        Even when the external PSK is not known to any party other than the client
+        and the server, then the external PSK <span class="bcp14">MUST NOT</span> be the sole
+        basis for authentication.  The reasoning is explained in Section 4.2 of
+        <span>[<a href="#K2016" class="cite xref">K2016</a>]</span>.  The authentication of the server
+        and optional authentication of the client depend upon the ability to generate
+        a signature that can be validated with the public key in their certificates.  The
+        authentication processing is not changed in any way by the selected external PSK.<a href="#section-7-8" class="pilcrow">¶</a></p>
+<p id="section-7-9">
+        In this extension, the external PSK preserves confidentiality if the
+        (EC)DH key agreement is ever broken by cryptanalysis or the future
+        invention of a CRQC.  As long as the attacker does not know the PSK and the
+        key derivation algorithm remains unbroken, the attacker cannot derive the
+        session secrets, even if they are able to compute the (EC)DH shared secret.
+        Should the attacker be able compute the (EC)DH shared secret, the
+        forward-secrecy advantages traditionally associated with ephemeral (EC)DH keys
+        will no longer be relevant.  Although the ephemeral private keys used during a
+        given TLS 1.3 session are destroyed at the end of a session, preventing the
+        attacker from later accessing them, these private keys would nevertheless be
+        recoverable due to the break in the (EC)DH algorithm.  However, a more
+        general notion of "secrecy after key material is destroyed" would still
+        be achievable using external PSKs, if they are managed in a way that
+        ensures their destruction when they are no longer needed, and with
+        the assumption that the symmetric algorithms that use the external PSKs
+        remain safe against the invention of a CRQC.<a href="#section-7-9" class="pilcrow">¶</a></p>
+<p id="section-7-10">
+        TLS 1.3 key derivation makes use of the HMAC-based Key Derivation
+     Function (HKDF) algorithm, which depends upon the HMAC
+     <span>[<a href="#RFC2104" class="cite xref">RFC2104</a>]</span> construction and a hash
+        function.  This extension provides the desired protection for the
+        session secrets, as long as HMAC with the selected hash function is
+        a pseudorandom function (PRF) <span>[<a href="#GGM1986" class="cite xref">GGM1986</a>]</span>.<a href="#section-7-10" class="pilcrow">¶</a></p>
+<p id="section-7-11">
+        This specification does not require that the external PSK is known only by
+        the client and server.  The external PSK may be known to a group.  Since
+        authentication depends on the public key in a certificate, knowledge of
+        the external PSK by other parties does not enable impersonation.  Since
+        confidentiality depends on the shared secret from (EC)DH, knowledge of
+        the external PSK by other parties does not enable eavesdropping.  However,
+        group members can record the traffic of other members and then decrypt it if
+        they ever gain access to a CRQC.  Also, when many parties know the external
+        PSK, there are many opportunities for theft of the external PSK by an
+        attacker.  Once an attacker has the external PSK, they can decrypt stored
+        traffic if they ever gain access to a CRQC, in the same manner as a
+        legitimate group member.<a href="#section-7-11" class="pilcrow">¶</a></p>
+<p id="section-7-12">
+        TLS 1.3 <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> takes a conservative
+        approach to PSKs; they are bound to a specific hash function and KDF.  By
+        contrast, TLS 1.2 <span>[<a href="#RFC5246" class="cite xref">RFC5246</a>]</span> allows PSKs to be
+        used with any hash function and the TLS 1.2 PRF.  Thus, the safest approach is
+        to use a PSK exclusively with TLS 1.2 or exclusively with TLS 1.3.  Given one
+        PSK, one can derive a PSK for exclusive use with TLS 1.2 and derive another
+        PSK for exclusive use with TLS 1.3 using the mechanism specified in
+        <span>[<a href="#RFC9258" class="cite xref">RFC9258</a>]</span>.<a href="#section-7-12" class="pilcrow">¶</a></p>
+<p id="section-7-13">
+        TLS 1.3 <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> has received careful
+        security analysis, and the following informal reasoning shows that the
+        addition of this extension does not introduce any security defects.  This
+        extension requires the use of certificates for authentication, but the
+        processing of certificates is unchanged by this extension.  This extension
+        places an external PSK in the key schedule as part of the computation of the
+        Early Secret.  In the initial handshake without this extension, the
+        Early Secret is computed as:<a href="#section-7-13" class="pilcrow">¶</a></p>
+<div class="sourcecode" id="section-7-14">
+<pre>
+   Early Secret = HKDF-Extract(0, 0)
+</pre><a href="#section-7-14" class="pilcrow">¶</a>
+</div>
+<p id="section-7-15">
+        With this extension, the Early Secret is computed as:<a href="#section-7-15" class="pilcrow">¶</a></p>
+<div class="sourcecode" id="section-7-16">
+<pre>
+   Early Secret = HKDF-Extract(0, External PSK)
+</pre><a href="#section-7-16" class="pilcrow">¶</a>
+</div>
+<p id="section-7-17">
+        Any entropy contributed by the external PSK can only make the Early
+        Secret better; the External PSK cannot make it worse.  Thus, TLS 1.3
+        continues to meet well-studied security goals when this extension
+        is used.<a href="#section-7-17" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy">
+<section id="section-8">
+      <h2 id="name-privacy-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-8-1">
+        <span><a href="https://rfc-editor.org/rfc/rfc8446#appendix-E.6" class="relref">Appendix E.6</a> of [<a href="#RFC8446" class="cite xref">RFC8446</a>]</span> discusses
+        identity-exposure attacks on PSKs.  Also,
+        <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12#appendix-C.4" class="relref">Appendix C.4</a> of [<a href="#I-D.ietf-tls-rfc8446bis" class="cite xref">I-D.ietf-tls-rfc8446bis</a>]</span>
+        discusses tracking prevention.  The guidance in these sections remain relevant.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">
+        If an external PSK identity is used for multiple connections, then an
+        observer will generally be able track clients and/or servers across
+        connections.  The rotation of the external PSK identity or the use of the
+        Encrypted Client Hello extension <span>[<a href="#I-D.ietf-tls-esni" class="cite xref">I-D.ietf-tls-esni</a>]</span> can
+        mitigate this risk.<a href="#section-8-2" class="pilcrow">¶</a></p>
+<p id="section-8-3">
+        This extension makes use of external PSKs to improve resilience against
+        attackers that gain access to a CRQC in the future and provides authentication
+        for initial enrollment of devices in an enterprise network.  This extension is
+        always accompanied by the "pre_shared_key" extension to provide the PSK
+        identities in plaintext in the ClientHello message.  Passive observation of
+        the these PSK identities will aid an attacker in tracking users or devices
+        that make use of this extension.<a href="#section-8-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-9">
+      <h2 id="name-references">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-9.1">
+        <h3 id="name-normative-references">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-emu-bootstrapped-tls">[I-D.ietf-emu-bootstrapped-tls]</dt>
+        <dd>
+<span class="refAuthor">Friel, O.</span> and <span class="refAuthor">D. Harkins</span>, <span class="refTitle">"Bootstrapped TLS Authentication with Proof of Knowledge (TLS-POK)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-emu-bootstrapped-tls-08</span>, <time datetime="2025-02-06" class="refDate">6 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-08">https://datatracker.ietf.org/doc/html/draft-ietf-emu-bootstrapped-tls-08</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7250">[RFC7250]</dt>
+        <dd>
+<span class="refAuthor">Wouters, P., Ed.</span>, <span class="refAuthor">Tschofenig, H., Ed.</span>, <span class="refAuthor">Gilmore, J.</span>, <span class="refAuthor">Weiler, S.</span>, and <span class="refAuthor">T. Kivinen</span>, <span class="refTitle">"Using Raw Public Keys in Transport Layer Security (TLS) and Datagram Transport Layer Security (DTLS)"</span>, <span class="seriesInfo">RFC 7250</span>, <span class="seriesInfo">DOI 10.17487/RFC7250</span>, <time datetime="2014-06" class="refDate">June 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7250">https://www.rfc-editor.org/info/rfc7250</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8446">[RFC8446]</dt>
+      <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8446">https://www.rfc-editor.org/info/rfc8446</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-9.2">
+        <h3 id="name-informative-references">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="Err7598">[Err7598]</dt>
+        <dd>
+<span class="refAuthor">RFC Editor</span>, <span class="refTitle">"RFC Errata 7598"</span>, <span>&lt;<a href="https://www.rfc-editor.org/errata/eid7598">https://www.rfc-editor.org/errata/eid7598</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="GGM1986">[GGM1986]</dt>
+        <dd>
+<span class="refAuthor">Goldreich, O.</span>, <span class="refAuthor">Goldwasser, S.</span>, and <span class="refAuthor">S. Micali</span>, <span class="refTitle">"How to construct random functions"</span>, <span class="refContent">Journal of the ACM</span>, <span class="refContent">Vol. 33, No. 4</span>, <span class="refContent">pp. 792-807</span>, <span class="seriesInfo">DOI 10.1145/6490.6503</span>, <time datetime="1986-08" class="refDate">August 1986</time>, <span>&lt;<a href="https://dl.acm.org/doi/10.1145/6490.6503">https://dl.acm.org/doi/10.1145/6490.6503</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.hoffman-c2pq">[I-D.hoffman-c2pq]</dt>
+        <dd>
+<span class="refAuthor">Hoffman, P.</span>, <span class="refTitle">"The Transition from Classical to Post-Quantum Cryptography"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-hoffman-c2pq-07</span>, <time datetime="2020-05-26" class="refDate">26 May 2020</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-hoffman-c2pq">https://datatracker.ietf.org/doc/html/draft-hoffman-c2pq</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-pquip-pqc-engineers">[I-D.ietf-pquip-pqc-engineers]</dt>
+        <dd>
+<span class="refAuthor">Banerjee, A.</span>, <span class="refAuthor">Reddy.K, T.</span>, <span class="refAuthor">Schoinianakis, D.</span>, <span class="refAuthor">Hollebeek, T.</span>, and <span class="refAuthor">M. Ounsworth</span>, <span class="refTitle">"Post-Quantum Cryptography for Engineers"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-pquip-pqc-engineers-12</span>, <time datetime="2025-05-19" class="refDate">19 May 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-12">https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-engineers-12</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-tls-esni">[I-D.ietf-tls-esni]</dt>
+        <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Sullivan, N.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"TLS Encrypted Client Hello"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-esni-24</span>, <time datetime="2025-03-20" class="refDate">20 March 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-24">https://datatracker.ietf.org/doc/html/draft-ietf-tls-esni-24</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-tls-rfc8446bis">[I-D.ietf-tls-rfc8446bis]</dt>
+        <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-rfc8446bis-12</span>, <time datetime="2025-02-17" class="refDate">17 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12">https://datatracker.ietf.org/doc/html/draft-ietf-tls-rfc8446bis-12</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IANA">[IANA]</dt>
+        <dd>
+<span class="refAuthor">IANA</span>, <span class="refTitle">"TLS ExtensionType Values"</span>, <span>&lt;<a href="https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml">https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="K2016">[K2016]</dt>
+        <dd>
+<span class="refAuthor">Krawczyk, H.</span>, <span class="refTitle">"A Unilateral-to-Mutual Authentication Compiler for Key Exchange (with Applications to Client Authentication in TLS1.3)"</span>, <span class="seriesInfo">cryptoeprint 2016/711</span>, <time datetime="2016-09-01" class="refDate">1 September 2016</time>, <span>&lt;<a href="https://eprint.iacr.org/2016/711">https://eprint.iacr.org/2016/711</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2104">[RFC2104]</dt>
+        <dd>
+<span class="refAuthor">Krawczyk, H.</span>, <span class="refAuthor">Bellare, M.</span>, and <span class="refAuthor">R. Canetti</span>, <span class="refTitle">"HMAC: Keyed-Hashing for Message Authentication"</span>, <span class="seriesInfo">RFC 2104</span>, <span class="seriesInfo">DOI 10.17487/RFC2104</span>, <time datetime="1997-02" class="refDate">February 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2104">https://www.rfc-editor.org/info/rfc2104</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4086">[RFC4086]</dt>
+        <dd>
+<span class="refAuthor">Eastlake 3rd, D.</span>, <span class="refAuthor">Schiller, J.</span>, and <span class="refAuthor">S. Crocker</span>, <span class="refTitle">"Randomness Requirements for Security"</span>, <span class="seriesInfo">BCP 106</span>, <span class="seriesInfo">RFC 4086</span>, <span class="seriesInfo">DOI 10.17487/RFC4086</span>, <time datetime="2005-06" class="refDate">June 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4086">https://www.rfc-editor.org/info/rfc4086</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5246">[RFC5246]</dt>
+        <dd>
+<span class="refAuthor">Dierks, T.</span> and <span class="refAuthor">E. Rescorla</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.2"</span>, <span class="seriesInfo">RFC 5246</span>, <span class="seriesInfo">DOI 10.17487/RFC5246</span>, <time datetime="2008-08" class="refDate">August 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc5246">https://www.rfc-editor.org/info/rfc5246</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9258">[RFC9258]</dt>
+      <dd>
+<span class="refAuthor">Benjamin, D.</span> and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Importing External Pre-Shared Keys (PSKs) for TLS 1.3"</span>, <span class="seriesInfo">RFC 9258</span>, <span class="seriesInfo">DOI 10.17487/RFC9258</span>, <time datetime="2022-07" class="refDate">July 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc9258">https://www.rfc-editor.org/info/rfc9258</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</section>
+<div id="changes">
+<section id="appendix-A">
+      <h2 id="name-changes-since-rfc-8773">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-changes-since-rfc-8773" class="section-name selfRef">Changes Since RFC 8773</a>
+      </h2>
+<p id="appendix-A-1">
+        The status elevation from Experimental RFC to Standards Track RFC is the most
+        significant change in this document.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">
+        In addition to minor editorial updates, which include a change to the title,
+        the following changes were made:<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A-3.1">
+            Expand the motivation discussion to talk about protection against the
+            future development of a Cryptographically Relevant Quantum Computer (CRQC)
+            and enrollment in enterprise networks.<a href="#appendix-A-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.2">
+            Separate the discussion of confidentiality and authentication.  The
+            inclusion of the external PSK offers some confidentiality protection
+            against the future invention of a CRQC, but the external PSK does not
+            improve authentication.<a href="#appendix-A-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.3">
+            Correct RFC Errata 7598 <span>[<a href="#Err7598" class="cite xref">Err7598</a>]</span>.<a href="#appendix-A-3.3" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.4">
+            Add a discussion of TLS Encrypted Client Hello to the
+            Privacy Considerations.<a href="#appendix-A-3.4" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.5">
+            Adopt terminology that has become widely accepted, such as CRQC and
+            Main Secret (instead of Master Secret).<a href="#appendix-A-3.5" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="appendix-A-3.6">
+            Provide URLs for all references.<a href="#appendix-A-3.6" class="pilcrow">¶</a>
+</li>
+      </ul>
+</section>
+</div>
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">
+        Many thanks to
+        <span class="contact-name">Liliya Akhmetzyanova</span>,
+        <span class="contact-name">Roman Danyliw</span>,
+        <span class="contact-name">Christian Huitema</span>,
+        <span class="contact-name">Ben Kaduk</span>,
+        <span class="contact-name">Geoffrey Keating</span>,
+        <span class="contact-name">Hugo Krawczyk</span>,
+        <span class="contact-name">Mirja Kühlewind</span>,
+        <span class="contact-name">Nikos Mavrogiannopoulos</span>,
+        <span class="contact-name">Nick Sullivan</span>,
+        <span class="contact-name">Martin Thomson</span>, and
+        <span class="contact-name">Peter Yee</span>
+        for their review and comments on the Internet-Drafts that eventually
+        became RFC 8773; their efforts have improved the document.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">
+        Many thanks to
+        <span class="contact-name">Dan Harkins</span>,
+        <span class="contact-name">Owen Friel</span>,
+        <span class="contact-name">John Preuß Mattsson</span>,
+        <span class="contact-name">Christian Huitema</span>,
+        <span class="contact-name">Joe Salowey</span>, and
+        <span class="contact-name">Britta Hale</span>
+        for their review and comments on the updates to RFC 8773 that became
+        this document; their efforts have improved the document.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+</section>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Russ Housley</span></div>
+<div dir="auto" class="left"><span class="org">Vigil Security, LLC</span></div>
+<div dir="auto" class="left"><span class="street-address">516 Dranesville Road</span></div>
+<div dir="auto" class="left">
+<span class="locality">Herndon</span>, <span class="region">VA</span> <span class="postal-code">20170</span>
+</div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:housley@vigilsec.com" class="email">housley@vigilsec.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
