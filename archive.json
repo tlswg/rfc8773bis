@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-05-27T00:57:26.919788+00:00",
+  "timestamp": "2025-05-29T00:58:44.741045+00:00",
   "repo": "tlswg/rfc8773bis",
   "labels": [
     {
@@ -84,28 +84,30 @@
       "id": "PR_kwDONnR_r86XgGsA",
       "title": "change IKM and not salt input of HKDF-Extract",
       "url": "https://github.com/tlswg/rfc8773bis/pull/2",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "muhammad-usama-sardar",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2025-05-24T14:22:06Z",
-      "updatedAt": "2025-05-26T15:36:17Z",
+      "updatedAt": "2025-05-28T18:26:40Z",
       "baseRepository": "tlswg/rfc8773bis",
       "baseRefName": "main",
       "baseRefOid": "692e006bce445a3a7c81299c2b0c4fc6fa59406b",
       "headRepository": "muhammad-usama-sardar/rfc8773bis",
       "headRefName": "patch-1",
       "headRefOid": "d7d4735be75393bf7507a0bd12b32a14106aa5e4",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2025-05-28T18:26:40Z",
+      "mergedAt": "2025-05-28T18:26:40Z",
+      "mergedBy": "russhousley",
+      "mergeCommit": {
+        "oid": "3e59fa0ba263df716db4af9061ba0a8593af0dec"
+      },
       "comments": [
         {
           "author": "muhammad-usama-sardar",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "> isn't this just literally the key schedule already in 8446\r\n\r\nIn my understanding, it is no different than 8446. It is just an _external PSK_ (in contrast to _resumption PSK_). ",
           "createdAt": "2025-05-25T23:03:22Z",
           "updatedAt": "2025-05-25T23:03:22Z"
@@ -119,7 +121,7 @@
         },
         {
           "author": "muhammad-usama-sardar",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "Yes, but `PSK` in 8446 is meant to cover both cases of _external PSK_ as well as _resumption PSK_. Here, in 8773bis, it is specifically _only_ external PSK.",
           "createdAt": "2025-05-26T12:19:17Z",
           "updatedAt": "2025-05-26T12:19:17Z"
@@ -130,6 +132,20 @@
           "body": "I don't understand your point. What I'm saying is that this is just the normal TLS 1.3 key schedule and not a change to the key schedule. Therefore the text above:\r\n\r\n>        places an external PSK in the key schedule as part of the computation of the\r\n>        Early Secret.  In the initial handshake without this extension, the\r\n>        Early Secret is computed as:\r\n\r\nIs at best misleading.\r\n\r\n",
           "createdAt": "2025-05-26T15:36:16Z",
           "updatedAt": "2025-05-26T15:36:16Z"
+        },
+        {
+          "author": "dconnolly",
+          "authorAssociation": "NONE",
+          "body": "8446 says:\r\n\r\n<img width=\"560\" alt=\"image\" src=\"https://github.com/user-attachments/assets/5898f88d-21d2-43b6-8d1b-10c1fffec975\" />\r\n\r\nas an example:\r\n\r\n<img width=\"301\" alt=\"image\" src=\"https://github.com/user-attachments/assets/432bb403-f977-4c76-96df-d72f55162f5d\" />\r\n\r\n\r\nAs mentioned above, `HKDF-Extract()` accepts the salt first then the key `IKM`:\r\n\r\n<img width=\"567\" alt=\"image\" src=\"https://github.com/user-attachments/assets/f2fc3448-9602-4571-b371-e45e60edd994\" />\r\n \r\n\r\n\r\nTherefore in this document, to align with 8446 and be secure, the call should be:\r\n\r\n```\r\nEarly Secret = HKDF-Extract(0, External PSK)\r\n```",
+          "createdAt": "2025-05-27T20:36:21Z",
+          "updatedAt": "2025-05-27T20:38:40Z"
+        },
+        {
+          "author": "muhammad-usama-sardar",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> I don't understand your point. What I'm saying is that this is just the normal TLS 1.3 key schedule and not a change to the key schedule. Therefore the text above:\r\n> \r\n> > ```\r\n> >    places an external PSK in the key schedule as part of the computation of the\r\n> >    Early Secret.  In the initial handshake without this extension, the\r\n> >    Early Secret is computed as:\r\n> > ```\r\n> \r\n> Is at best misleading.\r\n\r\nI agree that the phrasing of the quoted text is misleading. In particular, both sentences ignore the fact that `PSK` in 8446 can also be external PSK. \r\n\r\nIt may be somewhat in the grey area on what exactly one may define as a _change_ to the key schedule. I have two conflicting thoughts: \r\n\r\n1. RFC8446 allows for _external_ PSK in the key schedule (interpretation of `PSK` being either _resumption_ or _external_ PSK). So in that sense, you are absolutely right; external PSK is already supported and is already a part of the key schedule of TLS (figure in Sec 7.1 of RFC8446). \r\n2. The use of external PSK is _optional_ in RFC8446. RFC8773bis _requires_ external PSK. So it is no longer optional in RFC8773bis. In that sense, it may be considered as a change in key schedule of RFC8446.  \r\n\r\nIndependent of whether we call it a change to key schedule or not, I think optional vs. required behavior is something worth clarifying. And I assume by these sentences Russ wanted to emphasize this. \r\n\r\nHow about this text: (changes in bold)\r\nThis extension **requires** an external PSK in the key schedule as part of the computation of the Early Secret. In the initial handshake without **external PSK** in RFC8446, the Early Secret is computed as:\r\n",
+          "createdAt": "2025-05-27T21:43:52Z",
+          "updatedAt": "2025-05-27T21:43:52Z"
         }
       ],
       "reviews": [
@@ -160,6 +176,60 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 3,
+      "id": "PR_kwDONnR_r86YA4aY",
+      "title": "Use -latest",
+      "url": "https://github.com/tlswg/rfc8773bis/pull/3",
+      "state": "MERGED",
+      "author": "seanturner",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-05-28T18:55:41Z",
+      "updatedAt": "2025-05-28T20:01:02Z",
+      "baseRepository": "tlswg/rfc8773bis",
+      "baseRefName": "main",
+      "baseRefOid": "3e59fa0ba263df716db4af9061ba0a8593af0dec",
+      "headRepository": "tlswg/rfc8773bis",
+      "headRefName": "seanturner-md-issues",
+      "headRefOid": "f777de6b414fb53544e715ab4aa3d8c4e1408c1e",
+      "closedAt": "2025-05-28T20:01:02Z",
+      "mergedAt": "2025-05-28T20:01:02Z",
+      "mergedBy": "seanturner",
+      "mergeCommit": {
+        "oid": "361065658b7bbba178ca9ae685a75816e3edb2c6"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 4,
+      "id": "PR_kwDONnR_r86YCLfU",
+      "title": "Clarify external PSK is optional in 8446 vs. required in this extension",
+      "url": "https://github.com/tlswg/rfc8773bis/pull/4",
+      "state": "OPEN",
+      "author": "muhammad-usama-sardar",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "To address the concern mentioned https://github.com/tlswg/rfc8773bis/pull/2#issuecomment-2910123198\r\n\r\nDetailed description in https://github.com/tlswg/rfc8773bis/pull/2#issuecomment-2914168965",
+      "createdAt": "2025-05-28T22:09:31Z",
+      "updatedAt": "2025-05-28T22:09:32Z",
+      "baseRepository": "tlswg/rfc8773bis",
+      "baseRefName": "main",
+      "baseRefOid": "472236a24d933f49287f39c9c4373617cbb68ba5",
+      "headRepository": "muhammad-usama-sardar/rfc8773bis",
+      "headRefName": "patch-1",
+      "headRefOid": "111392b8fdc01c647be9f7727fa0544784c27677",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
