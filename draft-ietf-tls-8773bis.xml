@@ -282,7 +282,7 @@
         <name>Companion Extensions</name>
         <t>
           <xref target="over"/> lists the extensions that are required to accompany
-          the "tls_cert_with_extern_psk" extension.  Most of those extensions 
+          the "tls_cert_with_extern_psk" extension.  Most of those extensions
           are not impacted in any way by this specification.  However, this
           section discusses the extensions that require additional consideration.
         </t>
@@ -412,11 +412,11 @@
           with the selected external PSK identifier, then the client and
           the server will compute different values for every entry in the
           key schedule, which will lead to the client aborting the
-          handshake with a "decrypt_error" alert. 
+          handshake with a "decrypt_error" alert.
         </t>
       </section>
     </section>
-    
+
     <section anchor="IANA-con" numbered="true" toc="default">
       <name>IANA Considerations</name>
       <t>
@@ -425,7 +425,7 @@
         entry for the "tls_cert_with_extern_psk" extension to reference this document.
       </t>
     </section>
-          
+
     <section anchor="security" numbered="true" toc="default">
       <name>Security Considerations</name>
       <t>
