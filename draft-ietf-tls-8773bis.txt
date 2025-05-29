@@ -413,7 +413,7 @@ Table of Contents
    encryption algorithm with sufficiently large keys.  For protection
    against the future invention of a CRQC, the symmetric key needs to be
    at least 128 bits.  While Grover’s algorithm (described in
-   Section 7.1 of [I-D.ietf-pquip-pqc-engineers]) allows a quantum
+   Section 2.1 of [I-D.ietf-pquip-pqc-engineers]) allows a quantum
    computer to perform a brute force key search using quadratically
    fewer steps than would be required with classical computers, there
    are a number of mitigating factors suggesting that Grover’s algorithm
