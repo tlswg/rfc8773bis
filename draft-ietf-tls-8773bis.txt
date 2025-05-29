@@ -491,9 +491,9 @@ Table of Contents
    extension does not introduce any security defects.  This extension
    requires the use of certificates for authentication, but the
    processing of certificates is unchanged by this extension.  This
-   extension places an external PSK in the key schedule as part of the
+   extension requires an external PSK in the key schedule as part of the
    computation of the Early Secret.  In the initial handshake without
-   this extension, the Early Secret is computed as:
+   external PSK in [RFC8446], the Early Secret is computed as:
 
       Early Secret = HKDF-Extract(0, 0)
 

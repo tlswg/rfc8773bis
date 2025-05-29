@@ -1685,8 +1685,8 @@ svg :is([fill="white"], [fill^="#fff"]) {
         addition of this extension does not introduce any security defects.  This
         extension requires the use of certificates for authentication, but the
         processing of certificates is unchanged by this extension.  This extension
-        places an external PSK in the key schedule as part of the computation of the
-        Early Secret.  In the initial handshake without this extension, the
+        requires an external PSK in the key schedule as part of the computation of the
+        Early Secret.  In the initial handshake without external PSK in <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>, the
         Early Secret is computed as:<a href="#section-7-13" class="pilcrow">¶</a></p>
 <div class="sourcecode" id="section-7-14">
 <pre>
