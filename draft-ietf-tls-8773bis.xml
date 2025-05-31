@@ -773,9 +773,8 @@
         <contact fullname="Mirja Kühlewind"/>,
         <contact fullname="Nikos Mavrogiannopoulos"/>,
         <contact fullname="Nick Sullivan"/>,
-        <contact fullname="Martin Thomson"/>,
-        <contact fullname="Peter Yee"/>, and
-        <contact fullname="Muhammad Usama Sardar"/>
+        <contact fullname="Martin Thomson"/>, and
+        <contact fullname="Peter Yee"/>
         for their review and comments on the Internet-Drafts that eventually
         became RFC 8773; their efforts have improved the document.
       </t>
@@ -786,8 +785,10 @@
         <contact fullname="John Preuß Mattsson"/>,
         <contact fullname="Christian Huitema"/>,
         <contact fullname="Joe Salowey"/>,
-        <contact fullname="Britta Hale"/>, and
-        <contact fullname="Joe Mandel"/>
+        <contact fullname="Britta Hale"/>,
+        <contact fullname="Peter Yee"/>,
+        <contact fullname="Joe Mandel"/>, and
+        <contact fullname="Muhammad Usama Sardar"/>
         for their review and comments on the updates to RFC 8773 that became
         this document; their efforts have improved the document.
       </t>
