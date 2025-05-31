@@ -30,9 +30,11 @@
       </address>
     </author>
 
-    <date day="22" month="February" year="2025"/>
+    <date day="31" month="May" year="2025"/>
 
     <keyword>cryptography</keyword>
+    <keyword>pre-shared key</keyword>
+
 
     <abstract>
       <t>
@@ -112,13 +114,21 @@
         agreement algorithm to break confidentiality.
       </t>
       <t>
-        When a certificate is used for authentication and a strong external PSK is
-        used in conjunction with a key agreement algorithm, which maintains the
-        authentication provided by the existing certificate and digital signature
-        mechanisms.  This authentication cannot be relied upon if a CRQC is ever
-        invented.  Including a strong external PSK in the TLS 1.3 key schedule does
-        not offer improved against the long-term quantum computing threat regarding
-        authentication.
+        The term strong external PSK is used to mean that the PSK that has
+        been generated and distributed in such a way that the invention of a CRQC
+        will not allow the owner of that quantum computer to learn the PSK.  While
+        generation and distribution of the PSK are outside the scope of this document,
+        in the context of a CRQC, security of the TLS 1.3 session using the
+        strong external PSK relies on and implicitly tied to the confidentiality,
+        entropy, and authenticity of the PSK.  Thus, the security claims in this
+        document depend on generation and distribution of the strong external PSK.
+      </t>
+      <t>
+        When a certificate is used for authentication, the authentication is
+        provided by the existing certificate and digital signature mechanisms.  This
+        authentication cannot be relied upon if a CRQC is ever invented.  The addition
+        of a strong external PSK in the TLS 1.3 key schedule does not offer improvement
+        against the long-term quantum computing threat regarding authentication.
       </t>
       <t>
         Likewise, a raw public key can be provided as described in
@@ -187,7 +197,10 @@
         the client depend upon the ability to generate a signature that
         can be validated with the public key in their certificates.  The
         authentication processing is not changed in any way by the
-        selected external PSK.
+        selected external PSK.  As a result, if a CRQC is ever invented,
+        the digital signature algorithm will need to be replaced with a
+        quantum resistant one.  Failure to do so will result in vulnerable
+        entity and data authentication mechanisms.
       </t>
       <t>
         Each external PSK is associated with a single hash algorithm, which is
@@ -416,7 +429,7 @@
         </t>
       </section>
     </section>
-
+    
     <section anchor="IANA-con" numbered="true" toc="default">
       <name>IANA Considerations</name>
       <t>
@@ -488,6 +501,34 @@
         least 128 bits.
       </t>
       <t>
+        TLS 1.3 <xref target="RFC8446" format="default"/> has received careful
+        security analysis, and the following informal reasoning shows that the
+        addition of this extension does not introduce any security
+        defects in the threat model of a traditional adversary, that is
+        an adversary that does not have access to a CRQC.  This extension
+        requires the use of certificates for authentication, but the
+        processing of certificates is unchanged by this extension.  This
+        extension requires an external PSK in the key schedule as part of
+        the computation of the Early Secret.  In the initial handshake
+        without this an external PSK in <xref target="RFC8446" format="default"/>,
+        the Early Secret is computed as:
+      </t>
+<sourcecode>
+   Early Secret = HKDF-Extract(0, 0)
+</sourcecode>
+      <t>
+        With this extension, the Early Secret is computed as:
+      </t>
+<sourcecode>
+   Early Secret = HKDF-Extract(0, External PSK)
+</sourcecode>
+      <t>
+        Any entropy contributed by the external PSK can only make the Early
+        Secret better; the External PSK cannot make it worse.  Thus, TLS 1.3
+        continues to meet well-studied confidentiality goals when this extension
+        is used.
+      </t>
+      <t>
         Even when the external PSK is not known to any party other than the client
         and the server, then the external PSK <bcp14>MUST NOT</bcp14> be the sole
         basis for authentication.  The reasoning is explained in Section 4.2 of
@@ -497,22 +538,68 @@
         authentication processing is not changed in any way by the selected external PSK.
       </t>
       <t>
-        In this extension, the external PSK preserves confidentiality if the
-        (EC)DH key agreement is ever broken by cryptanalysis or the future
+        This external PSK preserves some confidentiality and authentication
+        even if the (EC)DH key agreement is broken by cryptanalysis or the future
         invention of a CRQC.  As long as the attacker does not know the PSK and the
         key derivation algorithm remains unbroken, the attacker cannot derive the
-        session secrets, even if they are able to compute the (EC)DH shared secret.
-        Should the attacker be able compute the (EC)DH shared secret, the
-        forward-secrecy advantages traditionally associated with ephemeral (EC)DH keys
-        will no longer be relevant.  Although the ephemeral private keys used during a
-        given TLS 1.3 session are destroyed at the end of a session, preventing the
-        attacker from later accessing them, these private keys would nevertheless be
-        recoverable due to the break in the (EC)DH algorithm.  However, a more
-        general notion of "secrecy after key material is destroyed" would still
-        be achievable using external PSKs, if they are managed in a way that
-        ensures their destruction when they are no longer needed, and with
-        the assumption that the symmetric algorithms that use the external PSKs
-        remain safe against the invention of a CRQC.
+        session secrets, even if the attacker is able to compute the (EC)DH shared
+        secret. While the ephemeral (EC)DH private key used during a given TLS 1.3
+        session is destroyed before the end of a session, the (EC)DH private key
+        would nevertheless be recoverable due to the break of the (EC)DH
+        algorithm.  However, a more general notion of "secrecy after key material
+        is destroyed" would still be achievable using external PSKs, if they are
+        managed in a way that ensures their destruction when they are no longer
+        needed, and with the assumption that the symmetric algorithms remain safe
+        against the invention of a CRQC.
+      </t>
+      <t>
+        The forward-secrecy advantages traditionally associated with ephemeral
+        (EC)DH keys are not easily replaced by external PSKs. The confidentially
+        and authentication provided by the external PSK depend on whether the
+        external PSK is used for more that one TLS 1.3 session and the parties
+        that know the external PSK. Assuming the (EC)DH key agreement is broken:
+        <ul>
+          <li>
+            If the external PSK is used for a single TLS 1.3 session and it is 
+            known only by the client and server, then the usual TLS 1.3
+            confidentially and authentication is provided, including the
+            cryptographic separation between TLS 1.3 sessions. Of course, this
+            places a significant burden on the generation and distribution of
+            external PSKs.
+          </li>
+          <li>
+            If the external PSK is used for more than one TLS 1.3 session and it is
+            known only by the client and server, then the confidentially is limited
+            to the client and server, but there is no cryptographic separation
+            between TLS 1.3 sessions.
+          </li>
+          <li>
+            If the external PSK is used for more than one TLS 1.3 session and it is
+            known by the client, server and others, then the confidentially is limited
+            to the group that knows the external PSK, but there is no cryptographic
+            separation between TLS 1.3 sessions.
+          </li>
+        </ul>
+      </t>
+      <t>
+        This specification does not require that the external PSK is known only by
+        the client and server.  The external PSK may be known to a group.  Since
+        authentication depends on the public key in a certificate, knowledge of
+        the external PSK by other parties does not enable impersonation.  The
+        authentication of the server and optional authentication of the client
+        depend upon the ability to generate a signature that can be validated with
+        the public key in their certificates.  The authentication processing is not
+        changed in any way by the selected external PSK.
+      </t>
+      <t>
+        Confidentiality depends on the shared secret from (EC)DH, so knowledge of
+        the external PSK by other parties does not enable eavesdropping.  However,
+        group members can record the traffic of other members and then decrypt that
+        traffic if they ever gain access to a CRQC.  Also, when many parties know the
+        external PSK, there are many opportunities for theft of the external PSK by an
+        attacker.  Once an attacker has the external PSK, they can decrypt stored
+        traffic if they ever gain access to a CRQC, in the same manner as a
+        legitimate group member.
       </t>
       <t>
         TLS 1.3 key derivation makes use of the HMAC-based Key Derivation
@@ -523,20 +610,6 @@
         a pseudorandom function (PRF) <xref target="GGM1986" format="default"/>.
       </t>
       <t>
-        This specification does not require that the external PSK is known only by
-        the client and server.  The external PSK may be known to a group.  Since
-        authentication depends on the public key in a certificate, knowledge of
-        the external PSK by other parties does not enable impersonation.  Since
-        confidentiality depends on the shared secret from (EC)DH, knowledge of
-        the external PSK by other parties does not enable eavesdropping.  However,
-        group members can record the traffic of other members and then decrypt it if
-        they ever gain access to a CRQC.  Also, when many parties know the external
-        PSK, there are many opportunities for theft of the external PSK by an
-        attacker.  Once an attacker has the external PSK, they can decrypt stored
-        traffic if they ever gain access to a CRQC, in the same manner as a
-        legitimate group member.
-      </t>
-      <t>
         TLS 1.3 <xref target="RFC8446" format="default"/> takes a conservative
         approach to PSKs; they are bound to a specific hash function and KDF.  By
         contrast, TLS 1.2 <xref target="RFC5246" format="default"/> allows PSKs to be
@@ -545,35 +618,6 @@
         PSK, one can derive a PSK for exclusive use with TLS 1.2 and derive another
         PSK for exclusive use with TLS 1.3 using the mechanism specified in
         <xref target="RFC9258" format="default"/>.
-      </t>
-      <t>
-        TLS 1.3 <xref target="RFC8446" format="default"/> has received careful
-        security analysis, and the following informal reasoning shows that the
-        addition of this extension does not introduce any security defects.  This
-        extension requires the use of certificates for authentication, but the
-        processing of certificates is unchanged by this extension.  This extension
-        requires an external PSK in the key schedule as part of the computation of the
-        Early Secret.  In the initial handshake without external PSK in <xref target="RFC8446" format="default"/>, the
-        Early Secret is computed as:
-      </t>
-
-<sourcecode>
-   Early Secret = HKDF-Extract(0, 0)
-</sourcecode>
-
-      <t>
-        With this extension, the Early Secret is computed as:
-      </t>
-
-<sourcecode>
-   Early Secret = HKDF-Extract(0, External PSK)
-</sourcecode>
-
-      <t>
-        Any entropy contributed by the external PSK can only make the Early
-        Secret better; the External PSK cannot make it worse.  Thus, TLS 1.3
-        continues to meet well-studied security goals when this extension
-        is used.
       </t>
     </section>
 
@@ -685,6 +729,10 @@
         the following changes were made:
         <ul>
           <li>
+            Correct the order of the arguments to HKDF-Extract when an
+            external PSK is present.
+          </li>
+          <li>
             Expand the motivation discussion to talk about protection against the
             future development of a Cryptographically Relevant Quantum Computer (CRQC)
             and enrollment in enterprise networks.
@@ -725,8 +773,9 @@
         <contact fullname="Mirja Kühlewind"/>,
         <contact fullname="Nikos Mavrogiannopoulos"/>,
         <contact fullname="Nick Sullivan"/>,
-        <contact fullname="Martin Thomson"/>, and
-        <contact fullname="Peter Yee"/>
+        <contact fullname="Martin Thomson"/>,
+        <contact fullname="Peter Yee"/>, and
+        <contact fullname="Muhammad Usama Sardar"/>
         for their review and comments on the Internet-Drafts that eventually
         became RFC 8773; their efforts have improved the document.
       </t>
@@ -736,8 +785,9 @@
         <contact fullname="Owen Friel"/>,
         <contact fullname="John Preuß Mattsson"/>,
         <contact fullname="Christian Huitema"/>,
-        <contact fullname="Joe Salowey"/>, and
-        <contact fullname="Britta Hale"/>
+        <contact fullname="Joe Salowey"/>,
+        <contact fullname="Britta Hale"/>, and
+        <contact fullname="Joe Mandel"/>
         for their review and comments on the updates to RFC 8773 that became
         this document; their efforts have improved the document.
       </t>
