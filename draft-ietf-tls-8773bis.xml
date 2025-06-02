@@ -510,7 +510,7 @@
         processing of certificates is unchanged by this extension.  This
         extension requires an external PSK in the key schedule as part of
         the computation of the Early Secret.  In the initial handshake
-        without this an external PSK in <xref target="RFC8446" format="default"/>,
+        without an external PSK in <xref target="RFC8446" format="default"/>,
         the Early Secret is computed as:
       </t>
 <sourcecode>
