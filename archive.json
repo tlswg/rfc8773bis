@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-06-01T01:10:24.599282+00:00",
+  "timestamp": "2025-06-03T00:59:51.464765+00:00",
   "repo": "tlswg/rfc8773bis",
   "labels": [
     {
@@ -377,6 +377,60 @@
       "mergedBy": "russhousley",
       "mergeCommit": {
         "oid": "30ca653c34f1dd46e34545b6e6c3d25920866cf6"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 10,
+      "id": "PR_kwDONnR_r86YkAuW",
+      "title": "Perhaps a typo?",
+      "url": "https://github.com/tlswg/rfc8773bis/pull/10",
+      "state": "OPEN",
+      "author": "muhammad-usama-sardar",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Maybe someone changed it by mistake, but the new sentence structure does not make sense to me. \r\n\r\nReverting it back to what I proposed here:\r\nhttps://github.com/tlswg/rfc8773bis/pull/4/files",
+      "createdAt": "2025-06-02T07:23:14Z",
+      "updatedAt": "2025-06-02T07:23:14Z",
+      "baseRepository": "tlswg/rfc8773bis",
+      "baseRefName": "main",
+      "baseRefOid": "30ca653c34f1dd46e34545b6e6c3d25920866cf6",
+      "headRepository": "muhammad-usama-sardar/rfc8773bis",
+      "headRefName": "patch-2",
+      "headRefOid": "6a532e95874612c46363dcc0d0b57ea972464e4b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 11,
+      "id": "PR_kwDONnR_r86YqBfI",
+      "title": "Update draft-ietf-tls-8773bis.xml",
+      "url": "https://github.com/tlswg/rfc8773bis/pull/11",
+      "state": "MERGED",
+      "author": "russhousley",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fix typo spotted by Usama.",
+      "createdAt": "2025-06-02T15:53:17Z",
+      "updatedAt": "2025-06-02T15:53:29Z",
+      "baseRepository": "tlswg/rfc8773bis",
+      "baseRefName": "main",
+      "baseRefOid": "30ca653c34f1dd46e34545b6e6c3d25920866cf6",
+      "headRepository": "tlswg/rfc8773bis",
+      "headRefName": "fix-typo",
+      "headRefOid": "96af47b9fda8c39613e21186d1667d322734090d",
+      "closedAt": "2025-06-02T15:53:29Z",
+      "mergedAt": "2025-06-02T15:53:29Z",
+      "mergedBy": "russhousley",
+      "mergeCommit": {
+        "oid": "5eed57d9ce98f97ce5dbdc0115169a5804147bef"
       },
       "comments": [],
       "reviews": []
